@@ -23,12 +23,10 @@ object TdlCompiler {
 
     val nameDeclaration = classArray(0).replaceAll("=|\"", "").trim;
     val wordArray = nameDeclaration.split("\\s+")
-    println(nameDeclaration + ":" + wordArray.length)
     if (wordArray.length != 2)
       throw new IllegalArgumentException("The tdl definition is invalid [" + classArray(0) + "]")
 
     val tcName = wordArray(1);
-    println(tcName)
     val tcPackage = MINDERTDL_PACKAGE_NAME + "." + uMail
 
     val srcDir = new File("tdlsrc");
