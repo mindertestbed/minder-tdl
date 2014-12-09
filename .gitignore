@@ -1,0 +1,9 @@
+*.class
+*.jar
+.idea
+dlcache
+tdlcls
+tdlsrc
+target
+*.DS_Store
+DS_Store
