@@ -33,11 +33,11 @@ case class ParameterPipe(in: Int, out: Int) {
   }
 
 
-  var converter: (AnyRef => AnyRef) = (a: AnyRef) => {
+  var converter: (Any => Any) = (a: Any) => {
     a
   }
 
-  def using(converter: AnyRef => AnyRef) = {
+  def using(converter: Any => Any) = {
     this.converter = converter
     this
   }
