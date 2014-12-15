@@ -100,60 +100,12 @@ abstract class MinderTdl {
   def mapping(paramTriple: ParameterPipe*): List[ParameterPipe] = {
     paramTriple.toList
   }
-}
 
-case class MinderStr(vall: String) {
-  val buffer: Array[Byte] = Array.ofDim(2048)
-  val cache = new java.util.HashMap[String, (AnyRef, java.lang.reflect.Field)]
-
-  def of(wrapperId: String): SignalSlot = {
-    SignalSlotInfoProvider.getSignalSlot(wrapperId, vall)
-  }
-
-  def %(subRepo: String): String = {
-    vall.concat("/").concat(subRepo)
-  }
-
-  def from(testCase: String)(implicit tdl: MinderTdl): Rivet = {
-    var rivet: Rivet = null;
-    var refObj: AnyRef = null;
-    var field: java.lang.reflect.Field = null;
-
-    //check the class name and format
-    val actualClassName =
-      if (!testCase.contains('.')) {
-        //this has to be in the same package. But still, lets add the full package name
-        tdl.thisPackage + "." + testCase
-      } else {
-        val index = testCase.lastIndexOf('.')
-        var email = testCase.substring(0, index)
-        val className = testCase.substring(index + 1)
-        email = email.replaceAll("(@|\\.)", "_")
-        TdlCompiler.MINDERTDL_PACKAGE_NAME + "." + email + "." + className
-      }
-
-    if (cache.containsKey(actualClassName)) {
-      val tpl = cache.get(actualClassName);
-      refObj = tpl._1;
-      field = tpl._2;
-      field.get(refObj).asInstanceOf[Rivet]
-    } else {
-      val clazz: Class[_] = TdlClassLoader.loadClass(actualClassName)
-      refObj = clazz.newInstance().asInstanceOf[AnyRef]
-      field = clazz.getDeclaredField(vall);
-      field setAccessible true
-      cache.put(actualClassName, (refObj, field));
-    }
-    rivet = field.get(refObj).asInstanceOf[Rivet]
-    tdl.SlotDefs.add(rivet);
-    rivet
-  }
-
-  def download(url: String)(implicit tdl: MinderTdl) = {
+  def download(url: String) = {
     val stream: ByteArrayOutputStream = new ByteArrayOutputStream();
 
     //first check the cache for the url.
-    val cacheKey = url.replaceAll("\\/|\\.|\\:|\\-", "_")
+    val cacheKey = url.replaceAll("\\p{Punct}", "_")
     val fl = new File(tdl.dlCache.getAbsolutePath, cacheKey);
     if (fl.exists()) {
       var len: Int = 0
@@ -211,19 +163,9 @@ case class MinderStr(vall: String) {
     new URL(url) #> stream
   }
 
-  def under(repo: String)(implicit tdl: MinderTdl): Array[Byte] = {
-    //TODO: caching mechanism
 
-    //check if the repo is a zip file
-    //TODO: support jar archives too
 
-    if (repo.endsWith(".zip")) {
-      extractFromZip(repo, vall)
-    } else {
-      download(repo + "/" + vall)
-    }
-  }
-
+  val buffer: Array[Byte] = Array.ofDim(2048)
   /**
    * Searches and extracts the entry with the given name from the acrhive given in zip.
    * @param repo the remote repo that the zip will be downloaded from
@@ -232,7 +174,7 @@ case class MinderStr(vall: String) {
    * the byte array that conatins the zip entry if found
    * @throws IllegalArgumentException if the zip does not contain the given entry
    */
-  def extractFromZip(repo: String, entry: String)(implicit tdl: MinderTdl): Array[Byte] = {
+  def extractFromZip(repo: String, entry: String): Array[Byte] = {
 
     val zip = download(repo);
 
@@ -246,7 +188,7 @@ case class MinderStr(vall: String) {
 
     var found = false
     while (zipEntry != null) {
-      if (zipEntry.getName == vall) {
+      if (zipEntry.getName == entry) {
         baos = new ByteArrayOutputStream()
 
         var len: Int = 0
@@ -263,20 +205,88 @@ case class MinderStr(vall: String) {
     }
 
     if (!found)
-      throw new IllegalArgumentException(repo + "/" + vall + " was not found")
+      throw new IllegalArgumentException(repo + "/" + entry + " was not found")
 
     baos.toByteArray
+  }
+
+}
+
+case class MinderStr(vall: String) {
+  val cache = new java.util.HashMap[String, (AnyRef, java.lang.reflect.Field)]
+
+  def of(wrapperId: String): SignalSlot = {
+    SignalSlotInfoProvider.getSignalSlot(wrapperId, vall)
+  }
+
+  def %(subRepo: String): String = {
+    vall.concat("/").concat(subRepo)
+  }
+
+  def from(testCase: String)(implicit tdl: MinderTdl): Rivet = {
+    var rivet: Rivet = null;
+    var refObj: AnyRef = null;
+    var field: java.lang.reflect.Field = null;
+
+    //check the class name and format
+    val actualClassName =
+      if (!testCase.contains('.')) {
+        //this has to be in the same package. But still, lets add the full package name
+        tdl.thisPackage + "." + testCase
+      } else {
+        val index = testCase.lastIndexOf('.')
+        var email = testCase.substring(0, index)
+        val className = testCase.substring(index + 1)
+        email = email.replaceAll("(@|\\.)", "_")
+        TdlCompiler.MINDERTDL_PACKAGE_NAME + "." + email + "." + className
+      }
+
+    if (cache.containsKey(actualClassName)) {
+      val tpl = cache.get(actualClassName);
+      refObj = tpl._1;
+      field = tpl._2;
+      field.get(refObj).asInstanceOf[Rivet]
+    } else {
+      val clazz: Class[_] = TdlClassLoader.loadClass(actualClassName)
+      refObj = clazz.newInstance().asInstanceOf[AnyRef]
+      field = clazz.getDeclaredField(vall);
+      field setAccessible true
+      cache.put(actualClassName, (refObj, field));
+    }
+    rivet = field.get(refObj).asInstanceOf[Rivet]
+    tdl.SlotDefs.add(rivet);
+    rivet
+  }
+
+
+  def under(repo: String)(implicit tdl: MinderTdl): Array[Byte] = {
+    //TODO: caching mechanism
+
+    //check if the repo is a zip file
+    //TODO: support jar archives too
+
+    if (repo.endsWith(".zip")) {
+      tdl.extractFromZip(repo, vall)
+    } else {
+      tdl.download(repo + "/" + vall)
+    }
   }
 }
 
 case class MinderInt(in: Int) {
   def onto(out: Int) = ParameterPipe((in - 1), (out - 1))
+
+  def tonto(destination: Int) = {
+    val p = ParameterPipe(-1, destination - 1);
+    p.using((a: Any) => in);
+    p
+  }
 }
 
-case class MinderAny(dst: AnyRef) {
-  def onto(destination: Int) = {
+case class MinderAny(dst: Any) {
+  def tonto(destination: Int) = {
     val p = ParameterPipe(-1, destination - 1);
-    p.using((a: AnyRef) => dst);
+    p.using((a: Any) => dst);
     p
   }
 }
