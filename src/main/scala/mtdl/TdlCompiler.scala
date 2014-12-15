@@ -49,7 +49,7 @@ object TdlCompiler {
       finally {
         pw.close()
       }
-      val process = Runtime.getRuntime.exec("scalac -d ../tdlcls/ -language:postfixOps -feature -classpath ../target/scala-2.11/classes/:mtdl.jar" + wordArray(1) + ".scala", null, srcDir)
+      val process = Runtime.getRuntime.exec("scalac -d ../tdlcls/ -language:postfixOps -feature -classpath ../target/scala-2.11/classes/:mtdl.jar:../mtdl.jar " + wordArray(1) + ".scala", null, srcDir)
       process.waitFor()
 
       val out = Source.fromInputStream(process.getInputStream).mkString
