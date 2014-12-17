@@ -60,6 +60,10 @@ object TdlCompiler {
       if (err != null && err.trim.length != 0)
         System.err.println(err)
 
+      if (err!=null && err.length > 0){
+        throw new IllegalArgumentException(err);
+      }
+
       TdlClassLoader.loadClass(tcPackage + "." + tcName).asInstanceOf[Class[MinderTdl]]
     }
   }

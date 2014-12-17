@@ -88,6 +88,10 @@ abstract class MinderTdl {
 
       pipe.inRef = signal params pipe.in
 
+      //update the selector function to pass-through whatever we provide. (cos we will
+      //provide the actual signal argument later.
+      pipe.select = (a: Any) => a
+
       ml += pipe
     }
     ml.toList
@@ -261,7 +265,6 @@ case class MinderStr(vall: String) {
 
   def under(repo: String)(implicit tdl: MinderTdl): Array[Byte] = {
     //TODO: caching mechanism
-
     //check if the repo is a zip file
     //TODO: support jar archives too
 
@@ -273,20 +276,44 @@ case class MinderStr(vall: String) {
   }
 }
 
+/**
+ * Used to provide additional methods to Int.
+ *
+ * @param in
+ */
 case class MinderInt(in: Int) {
-  def onto(out: Int) = ParameterPipe((in - 1), (out - 1))
 
-  def tonto(destination: Int) = {
-    val p = ParameterPipe(-1, destination - 1);
-    p.using((a: Any) => in);
+  /**
+   * creates a pipe that has in as input, out as target.
+   * If no input signal is specified, then in will be returned
+   * as the default output if this pipe.
+   *
+   * This default behaviour fixes the int input ambiguity bug.
+   */
+  def onto(out: Int) = {
+    val p = ParameterPipe((in - 1), (out - 1))
+    //the default selection for a parameter pipe is to return the in value.
+    //later the signal value might be passed.
+    p.select = (a: Any) => in;
     p
   }
 }
 
-case class MinderAny(dst: Any) {
-  def tonto(destination: Int) = {
-    val p = ParameterPipe(-1, destination - 1);
-    p.using((a: Any) => dst);
+/**
+ * Used to provide additional methods to Any.
+ * @param src
+ */
+case class MinderAny(src: Any) {
+  /**
+   * When a value is mapped onto <code>out</code>, then
+   * it is returned in the default converter function.
+   * @param out
+   * @return
+   */
+  def onto(out: Int) = {
+    val p = ParameterPipe(-1, out - 1);
+    //whatever happens, return the value.
+    p.select = (a: Any) => src;
     p
   }
 }
