@@ -13,7 +13,7 @@ libraryDependencies ++= Seq(
   "org.scala-lang" % "scala-reflect" % "2.11.4",
   "org.scala-lang" % "scala-actors" % "2.11.4",
   "org.scala-lang" % "scala-compiler" % "2.11.4",
-  "gov.tubitak.minder" % "minder-common" % "0.0.2",
+  "gov.tubitak.minder" % "minder-common" % "0.0.4",
   "org.specs2" % "specs2_2.11" % "2.3.11" % "test"
 )
 
