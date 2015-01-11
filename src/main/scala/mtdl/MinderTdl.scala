@@ -12,7 +12,7 @@ import scala.collection.mutable
 import scala.collection.mutable.MutableList
 import java.util.Date
 
-abstract class MinderTdl {
+abstract class MinderTdl(val variableWrapperMapping: Map[String, String], val run: java.lang.Boolean) {
   var dlCache = new File("dlcache");
   dlCache.mkdirs()
   //https://joinup.ec.europa.eu/system/files/project/94/f7/9e/ADMS_XML_Schema_v1.01.zip
@@ -61,7 +61,7 @@ abstract class MinderTdl {
   var SlotDefs = new util.ArrayList[Rivet]()
 
   def use(signal: SignalSlot)(list: List[ParameterPipe]) = {
-    if (!(signal.isInstanceOf[SignalImpl])) {
+    if (run && !(signal.isInstanceOf[SignalImpl])) {
       throw new IllegalArgumentException(signal.signature + " is not a signal.")
     }
 
@@ -168,8 +168,8 @@ abstract class MinderTdl {
   }
 
 
-
   val buffer: Array[Byte] = Array.ofDim(2048)
+
   /**
    * Searches and extracts the entry with the given name from the acrhive given in zip.
    * @param repo the remote repo that the zip will be downloaded from
@@ -214,13 +214,36 @@ abstract class MinderTdl {
     baos.toByteArray
   }
 
+  val wrapperDefs: mutable.Set[String] = mutable.Set[String]()
+  val variableDefs: mutable.Set[String] = mutable.Set[String]()
+
 }
 
 case class MinderStr(vall: String) {
   val cache = new java.util.HashMap[String, (AnyRef, java.lang.reflect.Field)]
 
-  def of(wrapperId: String): SignalSlot = {
-    SignalSlotInfoProvider.getSignalSlot(wrapperId, vall)
+  def of(wrapperId: String)(implicit tdl: MinderTdl): SignalSlot = {
+
+    println(">>>" + wrapperId + wrapperId.startsWith("$"))
+    if (wrapperId.startsWith("$"))
+      tdl.variableDefs += (wrapperId + ":" + vall)
+
+    if (tdl.run == false) {
+      //description mode
+      //we need to use .shall function of SLotImpl to get the rivet.
+      //so always return slotImpl.
+
+      return SlotImpl(wrapperId, vall)
+    } else {
+      //if the wrapper id is a variable, then we have to find the matching actual wrapper from the wrapper map
+      val searchKey = if (wrapperId.startsWith("$")) tdl.variableWrapperMapping(wrapperId) else wrapperId
+      val signalOrSlot = SignalSlotInfoProvider.getSignalSlot(searchKey, vall)
+
+      //now add the wrapper to the actual wrapper list
+      tdl.wrapperDefs += signalOrSlot.wrapperId
+
+      signalOrSlot
+    }
   }
 
   def %(subRepo: String): String = {
@@ -252,7 +275,7 @@ case class MinderStr(vall: String) {
       field.get(refObj).asInstanceOf[Rivet]
     } else {
       val clazz: Class[_] = TdlClassLoader.loadClass(actualClassName)
-      refObj = clazz.newInstance().asInstanceOf[AnyRef]
+      refObj = clazz.getConstructors()(0).newInstance(tdl.variableWrapperMapping, tdl.run).asInstanceOf[AnyRef]
       field = clazz.getDeclaredField(vall);
       field setAccessible true
       cache.put(actualClassName, (refObj, field));

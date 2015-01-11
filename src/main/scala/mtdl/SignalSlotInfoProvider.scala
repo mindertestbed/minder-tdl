@@ -17,7 +17,8 @@ object SignalSlotInfoProvider {
 
   def getSignalSlot(wrapperId: String, signature: String): SignalSlot = {
     if (provider == null)
-      throw new IllegalStateException("No signal-slot infor provider registered")
+      throw new IllegalStateException("No signal-slot info provider registered")
+
 
     provider.getSignalSlot(wrapperId, signature)
   }
@@ -25,4 +26,6 @@ object SignalSlotInfoProvider {
   def setSignalSlotInfoProvider(provider: ISignalSlotInfoProvider): Unit = {
     this.provider = provider
   }
+
+
 }

@@ -3,7 +3,7 @@ import java.util.Date
 TestCase = "SampleTestCase1"
 
 //my custom converters
-def converter1(str: AnyRef): AnyRef = {
+def converter1(str: Any): Any = {
   ""
 }
 
@@ -39,13 +39,13 @@ def justiceXsd = "SCFormCPartI_BD001007/data/standard/Justice.xsd" under smallCl
 
 //a rivet for a slot that does not take parameters and has to be triggered directly by
 //the engine
-val rivet1 = "slot0()" of "wrapper0" asIs
+val rivet1 = "slot0()" of "$wrapper0" asIs
 
 //a rivet that does not take parameters and will be triggered by a signal
-val rivet2 = "slot0()" of "wrapper1" shall use("signal0()" of "wrapper0")(automatically)
+val rivet2 = "slot0()" of "$wrapper1" shall use("signal0()" of "$wrapper0")(automatically)
 
 //a rivet connect a signal automatically. (pairwise match parameters)
-val rivet3 = "slot1(int, int, java.lang.String)" of "wrapper1" shall
+val rivet3 = "slot1(int, int, java.lang.String)" of "$wrapper1" shall
   use("signal1(int, int, java.lang.String)" of "wrapper2")(automatically)
 
 val rivet4 = "slot2(int, int, java.lang.String, byte [], byte [], java.util.Date)" of "wrapper2" shall(

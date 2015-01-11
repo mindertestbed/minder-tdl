@@ -2,7 +2,7 @@ organization := "gov.tubitak.minder"
 
 name := "minder-tdl"
 
-version := "0.0.4"
+version := "0.0.5"
 
 resolvers += Resolver.mavenLocal
 
@@ -18,7 +18,7 @@ libraryDependencies ++= Seq(
   "org.scala-lang" % "scala-reflect" % "2.11.4",
   "org.scala-lang" % "scala-actors" % "2.11.4",
   "org.scala-lang" % "scala-compiler" % "2.11.4",
-  "gov.tubitak.minder" % "minder-common" % "0.0.41",
+  "gov.tubitak.minder" % "minder-common" % "0.0.5",
   "org.specs2" % "specs2_2.11" % "2.3.11" % "test"
 )
 

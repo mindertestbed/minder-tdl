@@ -41,7 +41,7 @@ object TdlCompiler {
         pw.println()
         pw.println("import  mtdl._")
         pw.println()
-        pw.println("class " + tcName + " extends MinderTdl{")
+        pw.println("class " + tcName + "(override val variableWrapperMapping: Map[String,String], run: Boolean) extends MinderTdl(variableWrapperMapping, run){")
         pw.println("thisPackage = \"" + tcPackage + "\"")
         pw.println(tdlStr)
         pw.println("}")
@@ -72,13 +72,7 @@ object TdlCompiler {
     compileTdl(uMail, Source.fromFile(file).mkString)
   }
 
-  /**
-   * Runs the given test case
-   * Created by yerlibilgin on 07/12/14.
-   *
-   * @param sessionId the user if of the TS that is running the test
-   * @param tdl The test definition
-   */
-  def runTest(sessionId: String, tdl: MinderTdl): Unit = {
+  def getSignatures(tdl: String, wrapperName: String): Unit ={
+
   }
 }

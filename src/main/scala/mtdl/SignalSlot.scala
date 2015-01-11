@@ -40,6 +40,22 @@ abstract class SignalSlot(val wrapperId: String, val signature: String) {
     Param(index, cannonical2Class(prm2), this)
   }
 
+  override def toString(): String ={
+    wrapperId + "." + signature;
+  }
+
+
+  override def equals(o: Any) : Boolean = {
+     if(!o.isInstanceOf[SignalSlot]) {
+       false;
+     } else if (o == null){
+       false;
+     } else{
+       this.toString() == o.toString;
+     }
+  }
+  override def hashCode = this.toString().hashCode;
+
   /**
    * A rivet definition function that requires the existence of signals or free values
    * @param lst

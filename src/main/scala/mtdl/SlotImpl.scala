@@ -37,7 +37,7 @@ case class SlotImpl(override val wrapperId: String, override val signature: Stri
   }
 
 
-  override def asIs(implicit tdl: MinderTdl):Rivet = {
+  override def asIs(implicit tdl: MinderTdl): Rivet = {
     val rivet = new Rivet(this, List())
     tdl.SlotDefs.add(rivet);
     rivet
