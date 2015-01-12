@@ -69,30 +69,37 @@ abstract class MinderTdl(val variableWrapperMapping: Map[String, String], val ru
     val ml: mutable.MutableList[ParameterPipe] = MutableList[ParameterPipe]()
 
 
-    //if pipe is empty, the signal is automatically bound to the slot
-    //so we should fill each param.
-
     var actualList = list;
-
+    //if pipe is empty, the signal is automatically bound to the slot
+    //so we should fill each param automatically.
     if (actualList.isEmpty) {
       actualList = signal.params.map(p => {
         ParameterPipe(p.index, p.index)
       }).toList
     }
 
-    for (pipe <- actualList) {
-      //verify that the signal has the in port of the pipe
-      if (!(signal hasParam pipe.in)) {
-        throw new Exception("singal {" + signal + "} does not have param <" + (pipe.in + 1) + ">")
-      }
-
-      pipe.inRef = signal params pipe.in
-
-      //update the selector function to pass-through whatever we provide. (cos we will
-      //provide the actual signal argument later.
-      pipe.select = (a: Any) => a
-
+    //if the actual list is still empty then the signal does not have any param.
+    //so put a special param to make sure that this signal does not get lost
+    //BUG FIX: BUG-1
+    if (actualList.isEmpty) {
+      val pipe = ParameterPipe(-1, -1)
+      pipe.inRef = Param(-1, null, signal)
       ml += pipe
+    } else {
+      for (pipe <- actualList) {
+        //verify that the signal has the in port of the pipe
+        if (!(signal hasParam pipe.in)) {
+          throw new Exception("singal {" + signal + "} does not have param <" + (pipe.in + 1) + ">")
+        }
+
+        pipe.inRef = signal params pipe.in
+
+        //update the selector function to pass-through whatever we provide. (cos we will
+        //provide the actual signal argument later.
+        pipe.select = (a: Any) => a
+
+        ml += pipe
+      }
     }
     ml.toList
   }
@@ -215,19 +222,12 @@ abstract class MinderTdl(val variableWrapperMapping: Map[String, String], val ru
   }
 
   val wrapperDefs: mutable.Set[String] = mutable.Set[String]()
-  val variableDefs: mutable.Set[String] = mutable.Set[String]()
-
 }
 
 case class MinderStr(vall: String) {
   val cache = new java.util.HashMap[String, (AnyRef, java.lang.reflect.Field)]
 
   def of(wrapperId: String)(implicit tdl: MinderTdl): SignalSlot = {
-
-    println(">>>" + wrapperId + wrapperId.startsWith("$"))
-    if (wrapperId.startsWith("$"))
-      tdl.variableDefs += (wrapperId + ":" + vall)
-
     if (tdl.run == false) {
       //description mode
       //we need to use .shall function of SLotImpl to get the rivet.

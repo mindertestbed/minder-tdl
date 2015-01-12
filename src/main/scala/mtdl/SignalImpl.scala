@@ -11,5 +11,10 @@ case class SignalImpl(override val wrapperId: String, override val signature: St
   override def asIs(implicit tdl: MinderTdl): Rivet = {
     throw new IllegalStateException("the method asIs is forbidden for a signal")
   }
+
+  override def equals(o: Any): Boolean = {
+    if (!o.isInstanceOf[SignalImpl]) false
+    else super.equals(o)
+  }
 }
 

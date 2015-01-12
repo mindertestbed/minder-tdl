@@ -28,11 +28,15 @@ case class SlotImpl(override val wrapperId: String, override val signature: Stri
    * @return
    */
   private def assignSlotToPipe(prm: ParameterPipe): ParameterPipe = {
-
-    if (!(this hasParam prm.out)) {
-      throw new IllegalArgumentException("Slot " + wrapperId + "." + signature + " does not have a param " + prm.out)
+    //BUGfix for BUG-1
+    if(prm.in == -1){
+      prm.outRef = Param(-1, null, this)
+    } else {
+      if (!(this hasParam prm.out)) {
+        throw new IllegalArgumentException("Slot " + wrapperId + "." + signature + " does not have a param " + prm.out)
+      }
+      prm.outRef = this.params(prm.out);
     }
-    prm.outRef = this.params(prm.out);
     prm
   }
 
@@ -41,5 +45,10 @@ case class SlotImpl(override val wrapperId: String, override val signature: Stri
     val rivet = new Rivet(this, List())
     tdl.SlotDefs.add(rivet);
     rivet
+  }
+
+  override def equals(o: Any): Boolean = {
+    if (!o.isInstanceOf[SignalImpl]) false
+    else super.equals(o)
   }
 }
