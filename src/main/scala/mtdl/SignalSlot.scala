@@ -16,7 +16,7 @@ abstract class SignalSlot(val wrapperId: String, val signature: String) {
 
   for (i <- 1 until splt.length) {
     var prm = splt(i).trim();
-    params(i - 1) = normalize(splt(i), i-1)
+    params(i - 1) = normalize(splt(i), i - 1)
   }
 
   /**
@@ -33,12 +33,29 @@ abstract class SignalSlot(val wrapperId: String, val signature: String) {
     //remove all spaces
     val prm2 = prm.replaceAll("\\s", "");
 
-    if (!isValidJavaType(prm2)){
+    if (!isValidJavaType(prm2)) {
       throw new IllegalArgumentException(prm + " is not a valid java type")
     }
 
     Param(index, cannonical2Class(prm2), this)
   }
+
+  override def toString(): String = {
+    wrapperId + "::" + signature;
+  }
+
+
+  override def equals(o: Any) = {
+    if (!o.isInstanceOf[SignalSlot]) {
+      false;
+    } else if (o == null) {
+      false;
+    } else {
+      this.toString() == o.toString;
+    }
+  }
+
+  override def hashCode = this.wrapperId.hashCode * 31 + this.signature.hashCode;
 
   /**
    * A rivet definition function that requires the existence of signals or free values
@@ -53,4 +70,5 @@ abstract class SignalSlot(val wrapperId: String, val signature: String) {
    * @return
    */
   def asIs(implicit tdl: MinderTdl): Rivet
+
 }

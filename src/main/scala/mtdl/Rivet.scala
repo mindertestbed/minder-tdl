@@ -29,8 +29,8 @@ class Rivet(val slot: SlotImpl, pipeListList: List[List[ParameterPipe]]) {
   if (pipes.isEmpty && !slot.params.isEmpty)
     throw new IllegalArgumentException("The slot requires arguments but none is supplied")
 
-  //the length of the parameters has to be the same as the number of slots
-  if (pipes.size != slot.params.size)
+  //the length of the parameters has to be the same as the number of slots if the signals and slots are not zero param.
+  if (pipes.size != slot.params.size && pipes.size != 1 && (pipes(0).in != -1 || pipes(0).out != -1))
     throw new IllegalArgumentException("The number of slot arguments has to match the number of parameter pipes")
 
   pipeListList.foreach(f = pipeList => {

@@ -33,12 +33,33 @@ case class ParameterPipe(in: Int, out: Int) {
   }
 
 
-  var converter: (Any => Any) = (a: Any) => {
-    a
+  /**
+   * Passes the input value from two functions:
+   *   evaluate and then convert
+   * @return
+   */
+  def execute(a : Any) : Any = {
+    convert(select(a))
   }
 
+  /**
+   * An selection function that can be set from the outer side.
+   *
+   * This is the function that decides whether the provided argument (in case of signals)
+   * or the built-in value (in case of free values) will be passed through the pipe.
+   *
+   * The default process is noop.
+   */
+  var select: (Any => Any) = (a:Any) => {a}
+
+  /**
+   * A converter function (defaulting to noop).
+   * Can be set by outer world to perform custom conversions on a value
+   */
+  var convert: (Any => Any) = (a: Any) => {a}
+
   def using(converter: Any => Any) = {
-    this.converter = converter
+    this.convert = converter
     this
   }
 }

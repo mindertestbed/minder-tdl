@@ -12,7 +12,7 @@ import scala.collection.mutable
 import scala.collection.mutable.MutableList
 import java.util.Date
 
-abstract class MinderTdl {
+abstract class MinderTdl(val variableWrapperMapping: Map[String, String], val run: java.lang.Boolean) {
   var dlCache = new File("dlcache");
   dlCache.mkdirs()
   //https://joinup.ec.europa.eu/system/files/project/94/f7/9e/ADMS_XML_Schema_v1.01.zip
@@ -61,7 +61,7 @@ abstract class MinderTdl {
   var SlotDefs = new util.ArrayList[Rivet]()
 
   def use(signal: SignalSlot)(list: List[ParameterPipe]) = {
-    if (!(signal.isInstanceOf[SignalImpl])) {
+    if (run && !(signal.isInstanceOf[SignalImpl])) {
       throw new IllegalArgumentException(signal.signature + " is not a signal.")
     }
 
@@ -69,26 +69,37 @@ abstract class MinderTdl {
     val ml: mutable.MutableList[ParameterPipe] = MutableList[ParameterPipe]()
 
 
-    //if pipe is empty, the signal is automatically bound to the slot
-    //so we should fill each param.
-
     var actualList = list;
-
+    //if pipe is empty, the signal is automatically bound to the slot
+    //so we should fill each param automatically.
     if (actualList.isEmpty) {
       actualList = signal.params.map(p => {
         ParameterPipe(p.index, p.index)
       }).toList
     }
 
-    for (pipe <- actualList) {
-      //verify that the signal has the in port of the pipe
-      if (!(signal hasParam pipe.in)) {
-        throw new Exception("singal {" + signal + "} does not have param <" + (pipe.in + 1) + ">")
-      }
-
-      pipe.inRef = signal params pipe.in
-
+    //if the actual list is still empty then the signal does not have any param.
+    //so put a special param to make sure that this signal does not get lost
+    //BUG FIX: BUG-1
+    if (actualList.isEmpty) {
+      val pipe = ParameterPipe(-1, -1)
+      pipe.inRef = Param(-1, null, signal)
       ml += pipe
+    } else {
+      for (pipe <- actualList) {
+        //verify that the signal has the in port of the pipe
+        if (!(signal hasParam pipe.in)) {
+          throw new Exception("singal {" + signal + "} does not have param <" + (pipe.in + 1) + ">")
+        }
+
+        pipe.inRef = signal params pipe.in
+
+        //update the selector function to pass-through whatever we provide. (cos we will
+        //provide the actual signal argument later.
+        pipe.select = (a: Any) => a
+
+        ml += pipe
+      }
     }
     ml.toList
   }
@@ -164,8 +175,8 @@ abstract class MinderTdl {
   }
 
 
-
   val buffer: Array[Byte] = Array.ofDim(2048)
+
   /**
    * Searches and extracts the entry with the given name from the acrhive given in zip.
    * @param repo the remote repo that the zip will be downloaded from
@@ -210,13 +221,29 @@ abstract class MinderTdl {
     baos.toByteArray
   }
 
+  val wrapperDefs: mutable.Set[String] = mutable.Set[String]()
 }
 
 case class MinderStr(vall: String) {
   val cache = new java.util.HashMap[String, (AnyRef, java.lang.reflect.Field)]
 
-  def of(wrapperId: String): SignalSlot = {
-    SignalSlotInfoProvider.getSignalSlot(wrapperId, vall)
+  def of(wrapperId: String)(implicit tdl: MinderTdl): SignalSlot = {
+    if (tdl.run == false) {
+      //description mode
+      //we need to use .shall function of SLotImpl to get the rivet.
+      //so always return slotImpl.
+
+      return SlotImpl(wrapperId, vall)
+    } else {
+      //if the wrapper id is a variable, then we have to find the matching actual wrapper from the wrapper map
+      val searchKey = if (wrapperId.startsWith("$")) tdl.variableWrapperMapping(wrapperId) else wrapperId
+      val signalOrSlot = SignalSlotInfoProvider.getSignalSlot(searchKey, vall)
+
+      //now add the wrapper to the actual wrapper list
+      tdl.wrapperDefs += signalOrSlot.wrapperId
+
+      signalOrSlot
+    }
   }
 
   def %(subRepo: String): String = {
@@ -248,7 +275,7 @@ case class MinderStr(vall: String) {
       field.get(refObj).asInstanceOf[Rivet]
     } else {
       val clazz: Class[_] = TdlClassLoader.loadClass(actualClassName)
-      refObj = clazz.newInstance().asInstanceOf[AnyRef]
+      refObj = clazz.getConstructors()(0).newInstance(tdl.variableWrapperMapping, tdl.run).asInstanceOf[AnyRef]
       field = clazz.getDeclaredField(vall);
       field setAccessible true
       cache.put(actualClassName, (refObj, field));
@@ -261,7 +288,6 @@ case class MinderStr(vall: String) {
 
   def under(repo: String)(implicit tdl: MinderTdl): Array[Byte] = {
     //TODO: caching mechanism
-
     //check if the repo is a zip file
     //TODO: support jar archives too
 
@@ -273,20 +299,44 @@ case class MinderStr(vall: String) {
   }
 }
 
+/**
+ * Used to provide additional methods to Int.
+ *
+ * @param in
+ */
 case class MinderInt(in: Int) {
-  def onto(out: Int) = ParameterPipe((in - 1), (out - 1))
 
-  def tonto(destination: Int) = {
-    val p = ParameterPipe(-1, destination - 1);
-    p.using((a: Any) => in);
+  /**
+   * creates a pipe that has in as input, out as target.
+   * If no input signal is specified, then in will be returned
+   * as the default output if this pipe.
+   *
+   * This default behaviour fixes the int input ambiguity bug.
+   */
+  def onto(out: Int) = {
+    val p = ParameterPipe((in - 1), (out - 1))
+    //the default selection for a parameter pipe is to return the in value.
+    //later the signal value might be passed.
+    p.select = (a: Any) => in;
     p
   }
 }
 
-case class MinderAny(dst: Any) {
-  def tonto(destination: Int) = {
-    val p = ParameterPipe(-1, destination - 1);
-    p.using((a: Any) => dst);
+/**
+ * Used to provide additional methods to Any.
+ * @param src
+ */
+case class MinderAny(src: Any) {
+  /**
+   * When a value is mapped onto <code>out</code>, then
+   * it is returned in the default converter function.
+   * @param out
+   * @return
+   */
+  def onto(out: Int) = {
+    val p = ParameterPipe(-1, out - 1);
+    //whatever happens, return the value.
+    p.select = (a: Any) => src;
     p
   }
 }
