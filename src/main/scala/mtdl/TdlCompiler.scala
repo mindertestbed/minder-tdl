@@ -13,7 +13,7 @@ object TdlCompiler {
   val MINDERTDL_PACKAGE_NAME = "minterTdl"
 
   def compileTdl(userEmail: String, tdlStr: String): Class[MinderTdl] = {
-    val uMail = userEmail.replaceAll("(@|\\.)", "_")
+    val uMail = userEmail.replaceAll("(@|\\.|\\-)", "_")
     val regex = "TestCase\\s*=\\s*((\"[a-zA-Z_][a-zA-Z_0-9]*\")|([a-zA-Z_][a-zA-Z_0-9]*))".r
 
     val classArray = (regex findAllIn tdlStr).toArray
