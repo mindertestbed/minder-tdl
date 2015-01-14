@@ -32,7 +32,8 @@ abstract class MinderTdl(val variableWrapperMapping: Map[String, String], val ru
   var Created: Date = null
   var Revision: Int = 0
 
-  var thisPackage: String = ""
+  var ThisPackage: String = ""
+  var AuthorMail: String = ""
 
   val param1: Int = 1
   val param2: Int = 2
@@ -59,6 +60,14 @@ abstract class MinderTdl(val variableWrapperMapping: Map[String, String], val ru
   val automatically = List[ParameterPipe]()
 
   var SlotDefs = new util.ArrayList[Rivet]()
+
+  def getAsset(asset: String) : Array[Byte] = {
+    //don't do anthing in description mode.
+    if (!tdl.run)
+      return null;
+
+    scala.io.Source.fromFile("assets/" +  AuthorMail + "/" + asset).mkString.getBytes
+  }
 
   def use(signal: SignalSlot)(list: List[ParameterPipe]) = {
     if (run && !(signal.isInstanceOf[SignalImpl])) {
@@ -259,7 +268,7 @@ case class MinderStr(vall: String) {
     val actualClassName =
       if (!testCase.contains('.')) {
         //this has to be in the same package. But still, lets add the full package name
-        tdl.thisPackage + "." + testCase
+        tdl.ThisPackage + "." + testCase
       } else {
         val index = testCase.lastIndexOf('.')
         var email = testCase.substring(0, index)
@@ -287,6 +296,10 @@ case class MinderStr(vall: String) {
 
 
   def under(repo: String)(implicit tdl: MinderTdl): Array[Byte] = {
+    //don't do anthing in description mode.
+    if (!tdl.run)
+      return null;
+
     //TODO: caching mechanism
     //check if the repo is a zip file
     //TODO: support jar archives too
