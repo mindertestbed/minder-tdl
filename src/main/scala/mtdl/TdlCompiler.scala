@@ -12,7 +12,9 @@ import scala.io.Source
 object TdlCompiler {
   private val lock = new Object
 
-  val MINDERTDL_PACKAGE_NAME = "minterTdl"
+  val MINDERTDL_PACKAGE_NAME = "minderTdl"
+
+  val SCALA_COMPILER = System.getProperty("SCALA_COMPILER", "scalac")
 
   def compileTdl(userEmail: String, tdlStr: String): Class[MinderTdl] = {
     val uMail = userEmail.replaceAll("(@|\\.|\\-)", "_")
@@ -58,7 +60,9 @@ object TdlCompiler {
         finally {
           pw.close()
         }
-        val process = Runtime.getRuntime.exec("scalac -d ../tdlcls/ -language:postfixOps -feature -classpath ../target/scala-2.11/classes/:mtdl.jar:../mtdl.jar " + wordArray(1) + ".scala", null, srcDir)
+
+
+        val process = Runtime.getRuntime.exec(SCALA_COMPILER + " -d ../tdlcls/ -language:postfixOps -feature -classpath ../target/scala-2.11/classes/" + File.pathSeparatorChar + "mtdl.jar" + File.pathSeparatorChar + "../mtdl.jar " + wordArray(1) + ".scala", null, srcDir)
         process.waitFor()
 
         val out = Source.fromInputStream(process.getInputStream).mkString
