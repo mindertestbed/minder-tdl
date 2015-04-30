@@ -61,6 +61,8 @@ abstract class MinderTdl(val variableWrapperMapping: Map[String, String], val ru
 
   var SlotDefs = new util.ArrayList[Rivet]()
 
+  def NULLSLOT = new NullSlot()
+
   def getAsset(asset: String) : Array[Byte] = {
     //don't do anthing in description mode.
     if (!tdl.run)

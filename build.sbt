@@ -2,7 +2,7 @@ organization := "gov.tubitak.minder"
 
 name := "minder-tdl"
 
-version := "0.0.93"
+version := "0.0.96"
 
 resolvers += Resolver.mavenLocal
 

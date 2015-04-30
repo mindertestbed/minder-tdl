@@ -1,7 +1,5 @@
 package mtdl
 
-import scala.collection.mutable
-
 /**
  * Created by yerlibilgin on 05/12/14.
  */
@@ -12,7 +10,7 @@ case class SlotImpl(override val wrapperId: String, override val signature: Stri
    * @return
    */
   override def shall(lists: List[ParameterPipe]*)(implicit tdl: MinderTdl): Rivet = {
-    var rivet = new Rivet(this, lists.map(list => {
+    val rivet = new Rivet(this, lists.map(list => {
       list.map(f => {
         assignSlotToPipe(f);
       })
@@ -29,7 +27,7 @@ case class SlotImpl(override val wrapperId: String, override val signature: Stri
    */
   private def assignSlotToPipe(prm: ParameterPipe): ParameterPipe = {
     //BUGfix for BUG-1
-    if(prm.in == -1){
+    if (prm.in == -1) {
       prm.outRef = Param(-1, null, this)
     } else {
       if (!(this hasParam prm.out)) {
@@ -50,5 +48,18 @@ case class SlotImpl(override val wrapperId: String, override val signature: Stri
   override def equals(o: Any): Boolean = {
     if (!o.isInstanceOf[SignalImpl]) false
     else super.equals(o)
+  }
+}
+
+
+class NullSlot() extends SlotImpl("NULLWRAPPER", "NULLSLOT") {
+  override def hasParam(param: Int): Boolean = true;
+
+  override def initialize() {
+    params = Array.ofDim(1000);
+
+    for (i <- 1 until 1000) {
+      params(i - 1) = Param(i, classOf[java.lang.Object], this)
+    }
   }
 }
