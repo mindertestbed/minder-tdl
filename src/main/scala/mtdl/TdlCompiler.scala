@@ -16,21 +16,21 @@ object TdlCompiler {
 
   val SCALA_COMPILER = System.getProperty("SCALA_COMPILER", "scalac")
 
-  def compileTdl(userEmail: String, tdlStr: String): Class[MinderTdl] = {
+  def compileTdl(userEmail: String, tcName: String, tdlStr: String): Class[MinderTdl] = {
     val uMail = userEmail.replaceAll("(@|\\.|\\-)", "_")
-    val regex = "TestCase\\s*=\\s*((\"[a-zA-Z_][a-zA-Z_0-9]*\")|([a-zA-Z_][a-zA-Z_0-9]*))".r
+    //val regex = "TestCase\\s*=\\s*((\"[a-zA-Z_][a-zA-Z_0-9]*\")|([a-zA-Z_][a-zA-Z_0-9]*))".r
 
-    val classArray = (regex findAllIn tdlStr).toArray
+    //val classArray = (regex findAllIn tdlStr).toArray
 
-    if (classArray.length != 1)
-      throw new IllegalArgumentException("The tdl definition must declare a TestCaseName")
+    //if (classArray.length != 1)
+    //  throw new IllegalArgumentException("The tdl definition must declare a TestCaseName")
 
-    val nameDeclaration = classArray(0).replaceAll("=|\"", "").trim;
-    val wordArray = nameDeclaration.split("\\s+")
-    if (wordArray.length != 2)
-      throw new IllegalArgumentException("The tdl definition is invalid [" + classArray(0) + "]")
+    //val nameDeclaration = classArray(0).replaceAll("=|\"", "").trim;
+    //val wordArray = nameDeclaration.split("\\s+")
+    //if (wordArray.length != 2)
+    //  throw new IllegalArgumentException("The tdl definition is invalid [" + classArray(0) + "]")
 
-    val tcName = wordArray(1);
+    //val tcName = wordArray(1);
     val tcPackage = MINDERTDL_PACKAGE_NAME + "." + uMail
 
     //now at this point, check the hash of the tdl and make sure that we are not recomping over and over
@@ -54,6 +54,7 @@ object TdlCompiler {
           pw.println("class " + tcName + "(override val variableWrapperMapping: Map[String,String], run: Boolean) extends MinderTdl(variableWrapperMapping, run){")
           pw.println("ThisPackage = \"" + tcPackage + "\"")
           pw.println("AuthorMail = \"" + uMail + "\"")
+          pw.println("TestCase = \"" + tcName + "\"")
           pw.println(tdlStr)
           pw.println("}")
         }
@@ -62,7 +63,7 @@ object TdlCompiler {
         }
 
 
-        val process = Runtime.getRuntime.exec(SCALA_COMPILER + " -d ../tdlcls/ -language:postfixOps -feature -classpath ../target/scala-2.11/classes/" + File.pathSeparatorChar + "mtdl.jar" + File.pathSeparatorChar + "../mtdl.jar " + wordArray(1) + ".scala", null, srcDir)
+        val process = Runtime.getRuntime.exec(SCALA_COMPILER + " -d ../tdlcls/ -language:postfixOps -feature -classpath ../target/scala-2.11/classes/" + File.pathSeparatorChar + "mtdl.jar" + File.pathSeparatorChar + "../mtdl.jar " + tcName + ".scala", null, srcDir)
         process.waitFor()
 
         val out = Source.fromInputStream(process.getInputStream).mkString
@@ -114,7 +115,16 @@ object TdlCompiler {
   }
 
   def compileTdl(uMail: String, file: File): Class[MinderTdl] = {
-    compileTdl(uMail, Source.fromFile(file).mkString)
+    compileTdl(uMail, {
+      var fn = file.getName
+      if (fn.contains('/')){
+        fn = fn.substring(fn.lastIndexOf('/')+1)
+      }
+      if (fn.contains('.')){
+        fn = fn.substring(0, fn.indexOf('.'))
+      }
+      fn
+    }, Source.fromFile(file).mkString)
   }
 
   def getSignatures(tdl: String, wrapperName: String): Unit = {
