@@ -8,15 +8,21 @@ import minderengine.ReflectionUtils._
  */
 abstract class SignalSlot(val wrapperId: String, val signature: String) {
   //parse the parameters from id
-  var splt = signature.split(Array('(', ',', ')'));
-  if (splt == null || splt.length == 0)
-    throw new Exception(signature + " is invalid")
 
-  var params: Array[Param] = Array.ofDim(splt.length - 1);
+  var params: Array[Param] = null;
+  initialize();
 
-  for (i <- 1 until splt.length) {
-    var prm = splt(i).trim();
-    params(i - 1) = normalize(splt(i), i - 1)
+  def initialize() {
+    val splt = signature.split(Array('(', ',', ')'));
+    if (splt == null || splt.length == 0)
+      throw new Exception(signature + " is invalid")
+
+   params = Array.ofDim(splt.length - 1);
+
+    for (i <- 1 until splt.length) {
+      var prm = splt(i).trim();
+      params(i - 1) = normalize(splt(i), i - 1)
+    }
   }
 
   /**

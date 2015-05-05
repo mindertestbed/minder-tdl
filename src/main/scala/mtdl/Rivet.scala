@@ -25,9 +25,15 @@ class Rivet(val slot: SlotImpl, pipeListList: List[List[ParameterPipe]]) {
   val signalPipeMap = new mutable.LinkedHashMap[(String,String), List[ParameterPipe]]()
   val freeVariablePipes = new mutable.MutableList[ParameterPipe]
 
+
+  println("Pipes size " + pipes.size);
+  println("Slot name " + slot.wrapperId + "." + slot.signature)
+  println("Slot params size " + (slot.params == null));
+
   //if the pipe list is empty, then the slot should also be zero-param
   if (pipes.isEmpty && !slot.params.isEmpty)
     throw new IllegalArgumentException("The slot requires arguments but none is supplied")
+
 
   //the length of the parameters has to be the same as the number of slots if the signals and slots are not zero param.
   if (pipes.size != slot.params.size && pipes.size != 1 && (pipes(0).in != -1 || pipes(0).out != -1))

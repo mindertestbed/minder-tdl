@@ -1,0 +1,43 @@
+//the name of the test case
+TestCase = "AS4_023_TestCase"
+//load the test artifacts from the repository
+def pmode = getAsset("PMode_023")
+def payload = getAsset("samplePayload")
+
+
+//Rivets
+val rivet1 = "configurePMode(byte[])" of "$C2" shall (map(pmode onto 1))
+
+val rivet2 = "submitPayload(byte[])" of "$C2" shall(map(payload onto 1))
+
+//receive payload submission ack. form C2, and do nothing
+val rivet3 = NULLSLOT shall (
+  use ("payloadSubmitted(byte[])" of "$C2")(
+    mapping(1 onto 1 using checkReceipt)))
+
+//take the as4 message from C2, check the user message for the prerequisite,
+//and forward it to C3
+val rivet4 = "receiveAS4Message(byte[])" of "$C3" shall (
+  use ("sendAS4Message(byte[])" of "$C2")(
+    mapping(1 onto 1 using checkUserMessage)))
+
+val rivet5 = "receiveAS4Receipt(byte[])" of "$C2" shall(
+  use ("sendAS4Receipt(byte[])" of "$C3")(
+    mapping(1 onto 1 using checkReceipt)))
+
+val rivet6 = NULLSLOT shall (
+  use ("deliverPayload(byte[])" of "$C3") (automatically) )
+
+def checkReceipt(receipt: Any) : Any = {
+  //check the receipt
+  val bReceipt = receipt asInstanceOf[Array[Byte]]
+  //throw an exception if there is a problem.
+  0
+}
+
+def checkUserMessage(anyAs4Message: Any) : Any = {
+  val as4Message = anyAs4Message asInstanceOf[Array[Byte]]
+  //use some smart XPath to verify that
+  //NonRepudiation=true and ReplyPattern=Response 
+  0
+}
