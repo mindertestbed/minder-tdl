@@ -61,14 +61,23 @@ abstract class MinderTdl(val variableWrapperMapping: Map[String, String], val ru
 
   var SlotDefs = new util.ArrayList[Rivet]()
 
+  val wrapperDefs: mutable.Set[String] = mutable.Set[String]()
+
+
   def NULLSLOT = new NullSlot()
 
   var debug: Any => Unit = (any: Any) => println(any)
-  var debugThrowable: (Any, Throwable) => Unit = (any: Any, throwable: Throwable) => {println(any);throwable.printStackTrace()}
+  var debugThrowable: (Any, Throwable) => Unit = (any: Any, throwable: Throwable) => {
+    println(any); throwable.printStackTrace()
+  }
   var info: Any => Unit = (any: Any) => println(any)
-  var infoThrowable: (Any, Throwable) => Unit = (any: Any, throwable: Throwable) => {println(any);throwable.printStackTrace()}
+  var infoThrowable: (Any, Throwable) => Unit = (any: Any, throwable: Throwable) => {
+    println(any); throwable.printStackTrace()
+  }
   var error: Any => Unit = (any: Any) => println(any)
-  var errorThrowable: (Any, Throwable) => Unit = (any: Any, throwable: Throwable) => {println(any);throwable.printStackTrace()}
+  var errorThrowable: (Any, Throwable) => Unit = (any: Any, throwable: Throwable) => {
+    println(any); throwable.printStackTrace()
+  }
 
 
   def DEBUG(any: Any): Unit = {
@@ -268,7 +277,54 @@ abstract class MinderTdl(val variableWrapperMapping: Map[String, String], val ru
     baos.toByteArray
   }
 
-  val wrapperDefs: mutable.Set[String] = mutable.Set[String]()
+  //utility functions
+
+  def bA2Hex(array: Array[Byte]): String = {
+    javax.xml.bind.DatatypeConverter.printHexBinary(array)
+  }
+
+
+  def hex2bA(hex: String): Array[Byte] = {
+    javax.xml.bind.DatatypeConverter.parseHexBinary(hex)
+  }
+
+  def sha256(array: Array[Byte]): Array[Byte] = {
+    import java.security.MessageDigest;
+    val md = MessageDigest.getInstance("SHA-256");
+    md.digest(array)
+  }
+
+  def sha128(array: Array[Byte]): Array[Byte] = {
+    import java.security.MessageDigest;
+    val md = MessageDigest.getInstance("SHA-1");
+    md.digest(array)
+  }
+
+
+  def compareArray(array1: Array[Byte], array2: Array[Byte]): Boolean = {
+    if (array1 == null && array2 == null) {
+      true
+    } else if (array1 == null) {
+      false
+    } else if (array2 == null) {
+      false
+    } else {
+      if (array1.length != array2.length)
+        false
+      else {
+        try {
+          for (i <- 0 until array1.length) {
+            if (array1(i) != array2(i))
+              throw new RuntimeException()
+          }
+          true
+        } catch {
+          case _ : Throwable =>
+            false
+        }
+      }
+    }
+  }
 }
 
 case class MinderStr(vall: String) {

@@ -2,13 +2,13 @@ organization := "gov.tubitak.minder"
 
 name := "minder-tdl"
 
-version := "0.1.0-a3"
+version := "0.1.0-a5"
 
 resolvers += Resolver.mavenLocal
 
-javacOptions in (Compile, compile) ++= Seq("-source", "1.7", "-target", "1.7")
+javacOptions in (Compile, compile) ++= Seq("-source", "1.8", "-target", "1.8")
 
-javacOptions in (doc) ++= Seq("-source", "1.7")
+javacOptions in (doc) ++= Seq("-source", "1.8")
 
 
 scalaVersion := "2.11.2"
