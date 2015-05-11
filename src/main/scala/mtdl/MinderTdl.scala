@@ -68,7 +68,11 @@ abstract class MinderTdl(val variableWrapperMapping: Map[String, String], val ru
     if (!tdl.run)
       return null;
 
-    scala.io.Source.fromFile("assets/" +  AuthorMail + "/" + asset).mkString.getBytes
+
+
+    val bis = new BufferedInputStream(new FileInputStream("assets/" +  AuthorMail + "/" + asset))
+    val bArray = Stream.continually(bis.read).takeWhile(-1 !=).map(_.toByte).toArray
+    bArray
   }
 
   def use(signal: SignalSlot)(list: List[ParameterPipe]) = {
