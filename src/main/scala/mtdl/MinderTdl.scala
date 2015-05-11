@@ -63,14 +63,46 @@ abstract class MinderTdl(val variableWrapperMapping: Map[String, String], val ru
 
   def NULLSLOT = new NullSlot()
 
-  def getAsset(asset: String) : Array[Byte] = {
+  var debug: Any => Unit = (any: Any) => println(any)
+  var debugThrowable: (Any, Throwable) => Unit = (any: Any, throwable: Throwable) => {println(any);throwable.printStackTrace()}
+  var info: Any => Unit = (any: Any) => println(any)
+  var infoThrowable: (Any, Throwable) => Unit = (any: Any, throwable: Throwable) => {println(any);throwable.printStackTrace()}
+  var error: Any => Unit = (any: Any) => println(any)
+  var errorThrowable: (Any, Throwable) => Unit = (any: Any, throwable: Throwable) => {println(any);throwable.printStackTrace()}
+
+
+  def DEBUG(any: Any): Unit = {
+    debug(any)
+  }
+
+  def DEBUG(any: Any, throwable: Throwable): Unit = {
+    debug(any, throwable)
+  }
+
+  def INFO(any: Any): Unit = {
+    info(any)
+  }
+
+  def INFO(any: Any, throwable: Throwable): Unit = {
+    info(any, throwable)
+  }
+
+  def ERROR(any: Any): Unit = {
+    error(any)
+  }
+
+  def ERROR(any: Any, throwable: Throwable): Unit = {
+    error(any, throwable)
+  }
+
+  def getAsset(asset: String): Array[Byte] = {
     //don't do anthing in description mode.
     if (!tdl.run)
       return null;
 
 
 
-    val bis = new BufferedInputStream(new FileInputStream("assets/" +  AuthorMail + "/" + asset))
+    val bis = new BufferedInputStream(new FileInputStream("assets/" + AuthorMail + "/" + asset))
     val bArray = Stream.continually(bis.read).takeWhile(-1 !=).map(_.toByte).toArray
     bArray
   }
