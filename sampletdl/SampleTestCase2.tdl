@@ -1,4 +1,0 @@
-TestCase = "SampleTestCase2"
-
-var rivet1 = "rivet3" from "radu@romanya.com.SampleTestCase1"
-var rivet2 = "rivet4" from "SampleTestCase1"
