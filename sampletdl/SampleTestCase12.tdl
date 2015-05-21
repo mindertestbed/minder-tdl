@@ -1,7 +1,5 @@
 import java.util.Date
 
-TestCase = "SampleTestCase1"
-
 //my custom converters
 def converter1(str: Any): Any = {
   ""

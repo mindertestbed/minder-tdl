@@ -1,5 +1,3 @@
-//the name of the test case
-TestCase = "AS4_023_TestCase"
 //load the test artifacts from the repository
 def pmode = getAsset("PMode_023")
 def payload = getAsset("samplePayload")
@@ -30,13 +28,13 @@ val rivet6 = NULLSLOT shall (
 
 def checkReceipt(receipt: Any) : Any = {
   //check the receipt
-  val bReceipt = receipt asInstanceOf[Array[Byte]]
+  val bReceipt = receipt.asInstanceOf[Array[Byte]]
   //throw an exception if there is a problem.
   0
 }
 
 def checkUserMessage(anyAs4Message: Any) : Any = {
-  val as4Message = anyAs4Message asInstanceOf[Array[Byte]]
+  val as4Message = anyAs4Message.asInstanceOf[Array[Byte]]
   //use some smart XPath to verify that
   //NonRepudiation=true and ReplyPattern=Response 
   0
