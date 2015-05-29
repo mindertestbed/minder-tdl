@@ -9,11 +9,20 @@ import minderengine.ReflectionUtils._
 abstract class SignalSlot(val wrapperId: String, val signature: String) {
   //parse the parameters from id
 
-  var params: Array[Param] = null;
+  var params: Array[Param] = null
+
   initialize();
 
+  private var _timeout:Long = 0L
+
+  def timeout = _timeout
+
+  def timeout_=(timeout: Long) {
+    _timeout = timeout
+  }
+
   def initialize() {
-    val splt = signature.split(Array('(', ',', ')'));
+    val splt = signature.split(Array('(', ',', ')'))
     if (splt == null || splt.length == 0)
       throw new Exception(signature + " is invalid")
 
@@ -53,15 +62,15 @@ abstract class SignalSlot(val wrapperId: String, val signature: String) {
 
   override def equals(o: Any) = {
     if (!o.isInstanceOf[SignalSlot]) {
-      false;
+      false
     } else if (o == null) {
-      false;
+      false
     } else {
-      this.toString() == o.toString;
+      this.toString() == o.toString
     }
   }
 
-  override def hashCode = this.wrapperId.hashCode * 31 + this.signature.hashCode;
+  override def hashCode = this.wrapperId.hashCode * 31 + this.signature.hashCode
 
   /**
    * A rivet definition function that requires the existence of signals or free values
@@ -69,7 +78,7 @@ abstract class SignalSlot(val wrapperId: String, val signature: String) {
    * @param tdl
    * @return
    */
-  def shall(lst: List[ParameterPipe]*)(implicit tdl: MinderTdl): Rivet;
+  def shall(lst: List[ParameterPipe]*)(implicit tdl: MinderTdl): Rivet
 
   /**
    * A rivet definition for slots that do not take anything

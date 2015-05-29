@@ -58,6 +58,8 @@ abstract class MinderTdl(val variableWrapperMapping: Map[String, String], val ru
 
   def NULLSLOT = new NullSlot()
 
+  val NULL = new MinderNull()
+
   var debug: Any => Unit = (any: Any) => println(any)
   var debugThrowable: (Any, Throwable) => Unit = (any: Any, throwable: Throwable) => {
     println(any); throwable.printStackTrace()
