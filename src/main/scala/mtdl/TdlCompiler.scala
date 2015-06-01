@@ -61,7 +61,19 @@ object TdlCompiler {
         val groupId = packageNameSplit(1);
         val dependencyPath = DependencyService.getInstance().getClassPathString(dependencyString, groupId);
 
-        val process = Runtime.getRuntime.exec(SCALA_COMPILER + " -d ../tdlcls/ -language:postfixOps -feature -classpath " + dependencyPath + File.pathSeparator + "../target/scala-2.11/classes/" + File.pathSeparatorChar + "./tdlcls/" + File.pathSeparatorChar + "../tdlcls/" + File.pathSeparatorChar + "mtdl.jar" + File.pathSeparatorChar + "../mtdl.jar " + className + ".scala", null, srcDir)
+
+        val executeString: String =
+          SCALA_COMPILER + " -d ../tdlcls/ -language:postfixOps -feature -classpath "+ dependencyPath + File.pathSeparator+"../target/scala-2.11/classes/" +
+            File.pathSeparatorChar + "./tdlcls/" +
+            File.pathSeparatorChar + "../tdlcls/" +
+            File.pathSeparatorChar + "mtdl.jar" +
+            File.pathSeparatorChar + "../mtdl.jar" +
+            File.pathSeparatorChar + "AS4Utils.jar" +
+            File.pathSeparatorChar + "../AS4Utils.jar " +
+          className + ".scala"
+
+        println(executeString);
+        val process = Runtime.getRuntime.exec(executeString, null, srcDir)
         process.waitFor()
 
         val out = Source.fromInputStream(process.getInputStream).mkString
