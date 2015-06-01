@@ -2,7 +2,7 @@ organization := "gov.tubitak.minder"
 
 name := "minder-tdl"
 
-version := "0.1.1-alpha0"
+version := "0.1.2-alpha0"
 
 resolvers += Resolver.mavenLocal
 
@@ -19,7 +19,17 @@ libraryDependencies ++= Seq(
   "org.scala-lang" % "scala-actors" % "2.11.4",
   "org.scala-lang" % "scala-compiler" % "2.11.4",
   "gov.tubitak.minder" % "minder-common" % "0.0.6",
-  "org.specs2" % "specs2_2.11" % "2.3.11" % "test"
+  "org.specs2" % "specs2_2.11" % "2.3.11" % "test",
+  "org.eclipse.aether" % "aether-api" % "1.0.2.v20150114",
+  "org.eclipse.aether" % "aether-spi" % "1.0.2.v20150114",
+  "org.eclipse.aether" % "aether-util" % "1.0.2.v20150114",
+  "org.eclipse.aether" % "aether-impl" % "1.0.2.v20150114",
+  "org.eclipse.aether" % "aether-connector-basic" % "1.0.2.v20150114",
+  "org.eclipse.aether" % "aether-transport-classpath" % "1.0.2.v20150114",
+  "org.eclipse.aether" % "aether-transport-file" % "1.0.2.v20150114",
+  "org.eclipse.aether" % "aether-transport-http" % "1.0.2.v20150114",
+  "org.eclipse.aether" % "aether-transport-wagon" % "1.0.2.v20150114",
+  "org.apache.maven" % "maven-aether-provider" % "3.1.0"
 )
 
 publishTo := Some("eid releases" at "http://eidrepo:8081/nexus/content/repositories/releases")

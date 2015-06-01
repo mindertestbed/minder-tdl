@@ -3,6 +3,7 @@ package mtdl
 import java.io._
 import java.security.MessageDigest
 import javax.xml.bind.DatatypeConverter
+import dependencyutils.DependencyService
 
 import scala.io.Source
 
@@ -16,7 +17,7 @@ object TdlCompiler {
 
   val SCALA_COMPILER = System.getProperty("SCALA_COMPILER", "scalac")
 
-  def compileTdl(assetPath: String, packageInfo: String, className: String, source: String): Class[MinderTdl] = {
+  def compileTdl(assetPath: String, packageInfo: String, dependencyString: String , className: String, source: String): Class[MinderTdl] = {
     val packagePath = MINDERTDL_PACKAGE_NAME + "/" + packageInfo;
     val packageName = packagePath.replaceAll("/", ".")
 
@@ -56,8 +57,11 @@ object TdlCompiler {
           pw.close()
         }
 
+        val packageNameSplit = packageName.split("\\.");
+        val groupId = packageNameSplit(1);
+        val dependencyPath = DependencyService.getInstance().getClassPathString(dependencyString, groupId);
 
-        val process = Runtime.getRuntime.exec(SCALA_COMPILER + " -d ../tdlcls/ -language:postfixOps -feature -classpath ../target/scala-2.11/classes/" + File.pathSeparatorChar + "./tdlcls/" + File.pathSeparatorChar + "../tdlcls/" + File.pathSeparatorChar + "mtdl.jar" + File.pathSeparatorChar + "../mtdl.jar " + className + ".scala", null, srcDir)
+        val process = Runtime.getRuntime.exec(SCALA_COMPILER + " -d ../tdlcls/ -language:postfixOps -feature -classpath " + dependencyPath + File.pathSeparator + "../target/scala-2.11/classes/" + File.pathSeparatorChar + "./tdlcls/" + File.pathSeparatorChar + "../tdlcls/" + File.pathSeparatorChar + "mtdl.jar" + File.pathSeparatorChar + "../mtdl.jar " + className + ".scala", null, srcDir)
         process.waitFor()
 
         val out = Source.fromInputStream(process.getInputStream).mkString
@@ -73,6 +77,7 @@ object TdlCompiler {
         }
 
         updateHash(packagePath + "/" + className, source)
+
         TdlClassLoader.loadClass(packageName + "." + className).asInstanceOf[Class[MinderTdl]]
       }
     }
@@ -171,7 +176,7 @@ object TdlCompiler {
         fn = fn.substring(0, fn.indexOf('.'))
       }
       fn
-    }, Source.fromFile(file).mkString)
+    }, "",Source.fromFile(file).mkString)
   }
 
   def getSignatures(tdl: String, wrapperName: String): Unit = {

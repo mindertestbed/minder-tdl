@@ -2,32 +2,33 @@ package mtdl
 
 import java.net.{URL, URLClassLoader}
 
-import scala.collection.mutable
+import dependencyutils.DependencyService
+
+import scala.collection.mutable.ListBuffer
+
+import scala.collection.JavaConversions._
 
 object TdlClassLoader {
   val dir = new java.io.File("tdlcls/");
   dir.mkdirs()
 
-  var clsLoader = Thread.currentThread().getContextClassLoader
-
-  var sysList = new mutable.MutableList[URL]
-  var clzz = clsLoader
-
-  do {
-    if (clzz.isInstanceOf[URLClassLoader]) {
-      val urlcsz = clzz.asInstanceOf[URLClassLoader]
-      for (url <- urlcsz.getURLs) {
-        sysList += url
-      }
-    }
-    clzz = clzz.getParent
-  } while (clzz != null)
-  val urls = Array(dir.toURI.toURL);
-
   val lst = List
 
+  implicit def str2URL(s: String) = new URL(s)
+
   def loadClass(name: String): Class[_] = {
-    val cl = new Ldr(urls)
+    val allDependencyJars =  DependencyService.getInstance().allResolvedDependencies;
+
+    var dependecyBufferList = new ListBuffer[URL]()
+    dependecyBufferList += dir.toURI.toURL
+
+    for( currentJar <- allDependencyJars){
+       println( "currentJar: " + currentJar );
+      dependecyBufferList  += str2URL(currentJar)
+    }
+
+    //allDependencyJars.toArray(new Array[URL](0))
+    val cl = new Ldr(dependecyBufferList.toArray)
     cl.loadClass(name)
   }
 
