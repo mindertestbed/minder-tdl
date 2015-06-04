@@ -21,6 +21,11 @@ object TdlCompiler {
     val packagePath = MINDERTDL_PACKAGE_NAME + "/" + packageInfo;
     val packageName = packagePath.replaceAll("/", ".")
 
+    val packageNameSplit = packageName.split("\\.");
+    val groupId = packageNameSplit(1);
+    println("compileTdl.groupId",groupId)
+    val dependencyPath = DependencyService.getInstance().getClassPathString(dependencyString, groupId);
+
     //now at this point, check the hash of the tdl and make sure that we are not recomping over and over
 
     if (checkHash(packagePath + "/" + className, source)) {
@@ -56,10 +61,6 @@ object TdlCompiler {
         finally {
           pw.close()
         }
-
-        val packageNameSplit = packageName.split("\\.");
-        val groupId = packageNameSplit(1);
-        val dependencyPath = DependencyService.getInstance().getClassPathString(dependencyString, groupId);
 
 
         val executeString: String =

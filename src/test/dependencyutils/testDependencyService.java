@@ -7,7 +7,7 @@ import minderengine.dependencyutils.DependencyService;
  */
 public class testDependencyService {
     public static void main(String[ ] arg){
-        DependencyService.getInstance().createRepositorySystem("target/new-local-repo");
+        DependencyService.getInstance().createRepositorySystem("new-local-repo");
 
        //DependencyService.getInstance().addRepository("central", "default", "http://central.maven.org/maven2/");
         //or you may use directly DependencyService.getInstance().addMavenCentralRepository();
@@ -27,7 +27,7 @@ public class testDependencyService {
 
         String dependencyString = "org.apache.maven:maven-aether-provider:3.1.0\ngov.tubitak.minder:minder-common:0.0.5";
         //String dependencyString = "gov.tubitak.minder:minder-common:0.0.5";
-        String path = DependencyService.getInstance().getClassPathString(dependencyString);
+        String path = DependencyService.getInstance().getClassPathString(dependencyString,"_41");
         System.out.println("path:\n"+path);
     }
 

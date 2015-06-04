@@ -79,7 +79,8 @@ public class DependencyService {
     }
 
     public String getClassPathString(String dependencyString, String directoryName){
-        createRepositorySystem("target" + File.separator + directoryName);
+
+        createRepositorySystem("dependencies"+File.separator+directoryName);
 
         //DependencyService.getInstance().addRepository("central", "default", "http://central.maven.org/maven2/");
         //or you may use directly DependencyService.getInstance().addMavenCentralRepository();

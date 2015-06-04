@@ -17,14 +17,15 @@ object TdlClassLoader {
   implicit def str2URL(s: String) = new URL(s)
 
   def loadClass(name: String): Class[_] = {
-    val allDependencyJars =  DependencyService.getInstance().allResolvedDependencies;
+    val allDependencyJars = DependencyService.getInstance().allResolvedDependencies;
 
     var dependecyBufferList = new ListBuffer[URL]()
     dependecyBufferList += dir.toURI.toURL
 
-    for( currentJar <- allDependencyJars){
-       println( "currentJar: " + currentJar );
-      dependecyBufferList  += str2URL(currentJar)
+    for (currentJar <- allDependencyJars) {
+      val currentJar2 = "file://" + currentJar
+      println("currentJar: " + currentJar2)
+      dependecyBufferList += str2URL(currentJar2)
     }
 
     //allDependencyJars.toArray(new Array[URL](0))
@@ -34,18 +35,23 @@ object TdlClassLoader {
 
   class Ldr(urls: Array[URL]) extends URLClassLoader(urls: Array[URL]) {
     override def loadClass(name: String): Class[_] = {
-      if (name.startsWith(TdlCompiler.MINDERTDL_PACKAGE_NAME)) {
-        super.loadClass(name)
-      } else {
+      //(name.startsWith(TdlCompiler.MINDERTDL_PACKAGE_NAME))
+      try {
         TdlClassLoader.getClass.getClassLoader.loadClass(name)
+      } catch {
+        case ce: ClassNotFoundException => {
+          super.loadClass(name)
+        }
       }
     }
 
     override def loadClass(name: String, resolve: Boolean): Class[_] = {
-      if (name.startsWith(TdlCompiler.MINDERTDL_PACKAGE_NAME)) {
-        super.loadClass(name, resolve)
-      } else {
+      try {
         TdlClassLoader.getClass.getClassLoader.loadClass(name)
+      } catch {
+        case ce: ClassNotFoundException => {
+          super.loadClass(name, resolve)
+        }
       }
     }
   }
