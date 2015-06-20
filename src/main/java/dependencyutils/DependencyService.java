@@ -25,122 +25,114 @@ import java.util.List;
  * Created by melis on 25/05/15.
  */
 public class DependencyService {
+  private static DependencyService instance;
+
+  public synchronized static DependencyService getInstance() {
+    if (null == instance) {
+      instance = new DependencyService();
+    }
+    return instance;
+  }
+
+  private DependencyService() {
+  }
+
+  private RepositorySystem repositorySystem;
+  private DefaultRepositorySystemSession session;
+  private List<RemoteRepository> repositoryList;
+  public List<String> allResolvedDependencies;
+
+  public void createRepositorySystem(String localRepoDirectory) {
     /**
-     * Singleton Pattern
+     * Creates a repository system that can maintain many repositories
      */
-    private static DependencyService instance;
-    public synchronized static DependencyService getInstance() {
-        if (null == instance) {
-            instance = new DependencyService();
-        }
-        return instance;
-
-    }
-
-    private DependencyService() {
-
-    }
-
-
-
-    private RepositorySystem repositorySystem;
-    private DefaultRepositorySystemSession session;
-    private List<RemoteRepository> repositoryList;
-    public List<String> allResolvedDependencies ;
-
-    public void createRepositorySystem(String localRepoDirectory){
-        /**
-         * Creates a repository system that can maintain many repositories
-         */
-        repositorySystem = Booter.newRepositorySystem();
-
-        /**
-         * Session properties (such as where to download etc.)
-         */
-        session = Booter.newRepositorySystemSession( repositorySystem, localRepoDirectory );
-        session.setConfigProperty( ConflictResolver.CONFIG_PROP_VERBOSE, true );
-        session.setConfigProperty( DependencyManagerUtils.CONFIG_PROP_VERBOSE, true );
-
-        repositoryList = new ArrayList<RemoteRepository>();
-        allResolvedDependencies = new ArrayList<String>();
-    }
-
-
-    public void addMavenCentralRepository(){
-        addRepository("central", "default", "http://central.maven.org/maven2/");
-    }
-
-    public void addEidRepository(){
-        addRepository("Eid public repository", "default", "http://eidrepo:8081/nexus/content/groups/public/");
-    }
-
-    public void addRepository(String id, String type, String url){
-        repositoryList.add(Booter.addRepository(id, type, url));
-    }
-
-    public String getClassPathString(String dependencyString, String directoryName){
-
-        createRepositorySystem("dependencies"+File.separator+directoryName);
-
-        //DependencyService.getInstance().addRepository("central", "default", "http://central.maven.org/maven2/");
-        //or you may use directly DependencyService.getInstance().addMavenCentralRepository();
-
-        addRepository("Eid public repository", "default", "http://eidrepo:8081/nexus/content/groups/public/");
-        //or you may use directly DependencyService.getInstance().addEidRepository();
-
-
-        allResolvedDependencies = new ArrayList<String>();
-
-        String[] dependencies = dependencyString.split("\\n");
-        for (int i=0 ; i < dependencies.length ; i++){
-            String currentItem = dependencies[i];
-            downloadArtifactWithAllDependencies(currentItem);
-        }
-
-        return generateClassPathStringForArtifact();
-    }
-
-    public void downloadArtifactWithAllDependencies(String artifactInfo){
-        /**
-         * Specify the artifact eg. "org.apache.maven:maven-aether-provider:3.1.0"
-         */
-        //Artifact artifact = new DefaultArtifact( groupID + ":" + artifactID + ":" + version);
-        Artifact artifact = new DefaultArtifact( artifactInfo );
-
-        DependencyFilter classpathFlter = DependencyFilterUtils.classpathFilter( JavaScopes.COMPILE );
-
-        CollectRequest collectRequest = new CollectRequest();
-        collectRequest.setRoot( new Dependency( artifact, JavaScopes.COMPILE ) );
-        collectRequest.setRepositories( repositoryList );
-
-        DependencyRequest dependencyRequest = new DependencyRequest( collectRequest, classpathFlter );
-
-        List<ArtifactResult> artifactResults = null;
-        try {
-            artifactResults = repositorySystem.resolveDependencies( session, dependencyRequest ).getArtifactResults();
-        } catch (DependencyResolutionException e) {
-            e.printStackTrace();
-        }
-
-
-        for ( ArtifactResult artifactResult : artifactResults )
-        {
-            System.out.println( artifactResult.getArtifact() + " resolved to " + artifactResult.getArtifact().getFile() );
-            allResolvedDependencies.add(artifactResult.getArtifact().getFile()+"");
-        }
-    }
+    repositorySystem = Booter.newRepositorySystem();
 
     /**
-     * Generates the classpath for updating dependencies dynamically.
+     * Session properties (such as where to download etc.)
      */
-    public String generateClassPathStringForArtifact(){
-        //mvn exec:exec -Dexec.args="-classpath %classpath com.acme.Main" \ -Dexec.executable="java"
-        String classPathString = "";
-        for(Iterator<String> i = allResolvedDependencies.iterator(); i.hasNext(); ) {
-            String item = i.next();
-            classPathString += item + File.pathSeparator;
-        }
+    session = Booter.newRepositorySystemSession(repositorySystem, localRepoDirectory);
+    session.setConfigProperty(ConflictResolver.CONFIG_PROP_VERBOSE, true);
+    session.setConfigProperty(DependencyManagerUtils.CONFIG_PROP_VERBOSE, true);
 
-        return classPathString;
+    repositoryList = new ArrayList<RemoteRepository>();
+    allResolvedDependencies = new ArrayList<String>();
+  }
+
+
+  public void addMavenCentralRepository() {
+    addRepository("central", "default", "http://central.maven.org/maven2/");
+  }
+
+  public void addEidRepository() {
+    addRepository("Eid public repository", "default", "http://eidrepo:8081/nexus/content/groups/public/");
+  }
+
+  public void addRepository(String id, String type, String url) {
+    repositoryList.add(Booter.addRepository(id, type, url));
+  }
+
+  public String getClassPathString(String dependencyString, String directoryName) {
+    createRepositorySystem("dependencies" + File.separator);
+
+    //DependencyService.getInstance().addRepository("central", "default", "http://central.maven.org/maven2/");
+    //or you may use directly DependencyService.getInstance().addMavenCentralRepository();
+
+    addRepository("Eid public repository", "default", "http://eidrepo:8081/nexus/content/groups/public/");
+    //or you may use directly DependencyService.getInstance().addEidRepository();
+
+
+    allResolvedDependencies = new ArrayList<String>();
+
+    String[] dependencies = dependencyString.split("\\n");
+    for (int i = 0; i < dependencies.length; i++) {
+      String currentItem = dependencies[i];
+      downloadArtifactWithAllDependencies(currentItem);
     }
+
+    return generateClassPathStringForArtifact();
+  }
+
+  public void downloadArtifactWithAllDependencies(String artifactInfo) {
+    /**
+     * Specify the artifact eg. "org.apache.maven:maven-aether-provider:3.1.0"
+     */
+    //Artifact artifact = new DefaultArtifact( groupID + ":" + artifactID + ":" + version);
+    Artifact artifact = new DefaultArtifact(artifactInfo);
+
+    DependencyFilter classpathFlter = DependencyFilterUtils.classpathFilter(JavaScopes.COMPILE);
+
+    CollectRequest collectRequest = new CollectRequest();
+    collectRequest.setRoot(new Dependency(artifact, JavaScopes.COMPILE));
+    collectRequest.setRepositories(repositoryList);
+
+    DependencyRequest dependencyRequest = new DependencyRequest(collectRequest, classpathFlter);
+
+    List<ArtifactResult> artifactResults = null;
+    try {
+      artifactResults = repositorySystem.resolveDependencies(session, dependencyRequest).getArtifactResults();
+    } catch (DependencyResolutionException e) {
+      e.printStackTrace();
+    }
+
+
+    for (ArtifactResult artifactResult : artifactResults) {
+      //System.out.println( artifactResult.getArtifact() + " resolved to " + artifactResult.getArtifact().getFile() );
+      allResolvedDependencies.add(artifactResult.getArtifact().getFile() + "");
+    }
+  }
+
+  /**
+   * Generates the classpath for updating dependencies dynamically.
+   */
+  public String generateClassPathStringForArtifact() {
+    //mvn exec:exec -Dexec.args="-classpath %classpath com.acme.Main" \ -Dexec.executable="java"
+    String classPathString = "";
+    for (Iterator<String> i = allResolvedDependencies.iterator(); i.hasNext(); ) {
+      String item = i.next();
+      classPathString += item + File.pathSeparator;
+    }
+
+    return classPathString;
+  }
 }

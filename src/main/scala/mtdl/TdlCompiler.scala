@@ -24,7 +24,10 @@ object TdlCompiler {
     val packageNameSplit = packageName.split("\\.");
     val groupId = packageNameSplit(1);
     println("compileTdl.groupId",groupId)
-    val dependencyPath = DependencyService.getInstance().getClassPathString(dependencyString, groupId);
+    //resolution is here
+
+    println("DEPENDENCYSTRING>> " + dependencyString)
+    val dependencyPath = DependencyService.getInstance.getClassPathString(dependencyString, groupId);
 
     //now at this point, check the hash of the tdl and make sure that we are not recomping over and over
 
@@ -68,9 +71,7 @@ object TdlCompiler {
             File.pathSeparatorChar + "./tdlcls/" +
             File.pathSeparatorChar + "../tdlcls/" +
             File.pathSeparatorChar + "mtdl.jar" +
-            File.pathSeparatorChar + "../mtdl.jar" +
-            File.pathSeparatorChar + "AS4Utils.jar" +
-            File.pathSeparatorChar + "../AS4Utils.jar " +
+            File.pathSeparatorChar + "../mtdl.jar " +
           className + ".scala"
 
         println(executeString);
