@@ -126,7 +126,7 @@ abstract class MinderTdl(val variableWrapperMapping: Map[String, String], val ru
     //BUG FIX: BUG-1
     if (actualList.isEmpty) {
       val pipe = ParameterPipe(-1, -1)
-      pipe.inRef = Param(-1, null, signal)
+      pipe.inRef = Param(-1, signal)
       ml += pipe
     } else {
       for (pipe <- actualList) {
@@ -170,7 +170,6 @@ case class MinderStr(vall: String) {
       //if the wrapper id is a variable, then we have to find the matching actual wrapper from the wrapper map
       val searchKey = if (wrapperId.startsWith("$")) tdl.variableWrapperMapping(wrapperId) else wrapperId
       val signalOrSlot = SignalSlotInfoProvider.getSignalSlot(searchKey, vall)
-      signalOrSlot.setTdlClassLoader(tdl.getClass.getClassLoader)
 
       //now add the wrapper to the actual wrapper list
       tdl.wrapperDefs += signalOrSlot.wrapperId

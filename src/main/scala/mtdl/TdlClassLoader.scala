@@ -12,7 +12,7 @@ object TdlClassLoader {
   val classLoaders = new util.ArrayList[ClassLoader];
 
   val extraLibClassLoader = {
-    DependencyService.getInstance().getClassPathString("minder:AS4Utils:1.0.3-a5", "");
+    DependencyService.getInstance().getClassPathString("minder:AS4Utils:1.0.4", "");
     var dependecyBufferList = new ListBuffer[URL]()
     val additionalJars: util.List[String] = DependencyService.getInstance().allResolvedDependencies
     if (additionalJars != null) {

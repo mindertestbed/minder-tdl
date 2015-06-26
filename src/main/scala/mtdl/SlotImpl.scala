@@ -28,7 +28,7 @@ case class SlotImpl(override val wrapperId: String, override val signature: Stri
   private def assignSlotToPipe(prm: ParameterPipe): ParameterPipe = {
     //BUGfix for BUG-1
     if (prm.in == -1) {
-      prm.outRef = Param(-1, null, this)
+      prm.outRef = Param(-1, this)
     } else {
       if (!(this hasParam prm.out)) {
         throw new IllegalArgumentException("Slot " + wrapperId + "." + signature + " does not have a param " + prm.out)
@@ -59,7 +59,7 @@ class NullSlot() extends SlotImpl("NULLWRAPPER", "NULLSLOT") {
     params = Array.ofDim(1000);
 
     for (i <- 1 until 1000) {
-      params(i - 1) = Param(i, classOf[java.lang.Object], this)
+      params(i - 1) = Param(i, this)
     }
   }
 }

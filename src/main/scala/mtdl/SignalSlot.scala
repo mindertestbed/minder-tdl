@@ -6,11 +6,6 @@ import mtdl.ReflectionUtils._
  * Created by yerlibilgin on 05/12/14.
  */
 abstract class SignalSlot(val wrapperId: String, val signature: String) {
-
-  private var loader : ClassLoader = getClass.getClassLoader
-
-  def setTdlClassLoader(ldr: ClassLoader) = {loader = ldr}
-
   //parse the parameters from id
 
   var params: Array[Param] = null
@@ -56,7 +51,7 @@ abstract class SignalSlot(val wrapperId: String, val signature: String) {
       throw new IllegalArgumentException(prm + " is not a valid java type")
     }
 
-    Param(index, cannonical2Class(prm2, loader), this)
+    Param(index, this)
   }
 
   override def toString(): String = {

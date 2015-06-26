@@ -78,6 +78,7 @@ public class DependencyService {
     //DependencyService.getInstance().addRepository("central", "default", "http://central.maven.org/maven2/");
     //or you may use directly DependencyService.getInstance().addMavenCentralRepository();
 
+    //addRepository("local", "default", "file:///Users/yerlibilgin/.m2");
     addRepository("Eid public repository", "default", "http://eidrepo:8081/nexus/content/groups/public/");
     //or you may use directly DependencyService.getInstance().addEidRepository();
 
