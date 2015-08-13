@@ -3,7 +3,7 @@ package mtdl
 import java.io._
 import java.security.MessageDigest
 import javax.xml.bind.DatatypeConverter
-import dependencyutils.DependencyService
+import dependencyutils.{DependencyClassLoaderCache, DependencyService}
 
 import scala.io.Source
 
@@ -17,23 +17,40 @@ object TdlCompiler {
 
   val SCALA_COMPILER = System.getProperty("SCALA_COMPILER", "scalac")
 
-  def compileTdl(assetPath: String, packageInfo: String, dependencyString: String , className: String, source: String): Class[MinderTdl] = {
+  /**
+   * Compile the provided TDL source code and return a java class for it.
+   * @param assetPath
+   * The path that the corresponding MTDL script will resolve the assets from.
+   * @param packageInfo
+   * the package that the MTDL will be compiled into.
+   *
+   * @param dependencyString
+   * The list of the maven dependencies that will be included in the compilation and class resolution process
+   * @param className
+   * The name of the class (corresponds to the test case in Minder)
+   * @param source
+   * The MTDL script to be compiled.
+   * @return
+   * The Class<MinderTdl> instance.
+   */
+  def compileTdl(assetPath: String, packageInfo: String, dependencyString: String, className: String, source: String, version: String): Class[MinderTdl] = {
     val packagePath = MINDERTDL_PACKAGE_NAME + "/" + packageInfo;
     val packageName = packagePath.replaceAll("/", ".")
 
     val packageNameSplit = packageName.split("\\.");
     val groupId = packageNameSplit(1);
-    println("compileTdl.groupId",groupId)
+    println("compileTdl.groupId", groupId)
     //resolution is here
 
-    println("DEPENDENCYSTRING>> " + dependencyString)
-    val dependencyPath = DependencyService.getInstance.getClassPathString(dependencyString, groupId);
+    println("DEPENDENCYSTRING: " + dependencyString)
+    val dependencyClassLoader = DependencyClassLoaderCache.getDependencyClassLoader(dependencyString)
 
     //now at this point, check the hash of the tdl and make sure that we are not recomping over and over
 
+    //check the hash to prevent unnecessary recompilation
     if (checkHash(packagePath + "/" + className, source)) {
       println("Class not changed, load directly")
-      TdlClassLoader.loadClass(packageName + "." + className).asInstanceOf[Class[MinderTdl]]
+      TDLClassLoaderProvider.loadClass(packageName + "." + className, dependencyClassLoader).asInstanceOf[Class[MinderTdl]]
     } else {
       val srcDir = new File("tdlsrc");
       srcDir.mkdirs()
@@ -49,14 +66,15 @@ object TdlCompiler {
 
           //import the root package of this packageInfo
 
-          if (packageInfo.indexOf('/') > 0){
+          if (packageInfo.indexOf('/') > 0) {
             pw.println("import  " + MINDERTDL_PACKAGE_NAME + "." + packageInfo.substring(0, packageInfo.indexOf('/')) + "._")
           }
           pw.println()
 
-          pw.println("class " + className + "(override val variableWrapperMapping: Map[String,String], run: Boolean) extends MinderTdl(variableWrapperMapping, run){")
+          pw.println("class " + className + "(override val variableWrapperMapping: scala.collection.mutable.Map[String,String], run: Boolean) extends MinderTdl(variableWrapperMapping, run){")
           pw.println("ThisPackage = \"" + packageName + "\"")
           pw.println("AssetPath = \"" + assetPath + "\"")
+          pw.println("Version = \"" + version + "\"")
 
           pw.println(source)
           pw.println("}")
@@ -67,12 +85,12 @@ object TdlCompiler {
 
 
         val executeString: String =
-          SCALA_COMPILER + " -d ../tdlcls/ -language:postfixOps -feature -classpath "+ dependencyPath + File.pathSeparator+"../target/scala-2.11/classes/" +
+          SCALA_COMPILER + " -d ../tdlcls/ -language:postfixOps -feature -classpath " + dependencyClassLoader.getClassPathString + File.pathSeparator + "../target/scala-2.11/classes/" +
             File.pathSeparatorChar + "./tdlcls/" +
             File.pathSeparatorChar + "../tdlcls/" +
             File.pathSeparatorChar + "mtdl.jar" +
             File.pathSeparatorChar + "../mtdl.jar " +
-          className + ".scala"
+            className + ".scala"
 
         println(executeString);
         val process = Runtime.getRuntime.exec(executeString, null, srcDir)
@@ -92,21 +110,21 @@ object TdlCompiler {
 
         updateHash(packagePath + "/" + className, source)
 
-        TdlClassLoader.loadClass(packageName + "." + className).asInstanceOf[Class[MinderTdl]]
+        TDLClassLoaderProvider.loadClass(packageName + "." + className, dependencyClassLoader).asInstanceOf[Class[MinderTdl]]
       }
     }
   }
 
-  def compileUtil(assetPath: String, packageInfo: String, className: String, source: String): Unit = {
+  def compileUtil(assetPath: String, packageInfo: String, dependencyString: String, className: String, source: String): Unit = {
     val packagePath = MINDERTDL_PACKAGE_NAME + "/" + packageInfo;
     val packageName = packagePath.replaceAll("/", ".")
 
+    println("DEPENDENCYSTRING: " + dependencyString)
+    val dependencyClassLoader = DependencyClassLoaderCache.getDependencyClassLoader(dependencyString)
+
     //now at this point, check the hash of the tdl and make sure that we are not recomping over and over
 
-    if (checkHash(packagePath + "/" + className, source)) {
-      println("Class not changed, load directly")
-      TdlClassLoader.loadClass(packageName + "." + className).asInstanceOf[Class[MinderTdl]]
-    } else {
+    if (!checkHash(packagePath + "/" + className, source)) {
       val srcDir = new File("tdlsrc");
       srcDir.mkdirs()
       new File("tdlcls").mkdirs();
@@ -145,7 +163,6 @@ object TdlCompiler {
         }
 
         updateHash(packagePath + "/" + className, source)
-        TdlClassLoader.loadClass(packageName + "." + className).asInstanceOf[Class[MinderTdl]]
       }
     }
   }
@@ -179,21 +196,5 @@ object TdlCompiler {
     pw.print(hash)
     pw.close()
   }
-
-  def compileTdl(uMail: String, file: File): Class[MinderTdl] = {
-    compileTdl(".", "tg/td/tc", {
-      var fn = file.getName
-      if (fn.contains('/')) {
-        fn = fn.substring(fn.lastIndexOf('/') + 1)
-      }
-      if (fn.contains('.')) {
-        fn = fn.substring(0, fn.indexOf('.'))
-      }
-      fn
-    }, "",Source.fromFile(file).mkString)
-  }
-
-  def getSignatures(tdl: String, wrapperName: String): Unit = {
-
-  }
 }
+

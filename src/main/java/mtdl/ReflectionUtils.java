@@ -75,7 +75,7 @@ public class ReflectionUtils {
    *                   class)
    * @return the class that is resolved
    */
-  public static Class<?> cannonical2Class(String cannonical, ClassLoader loader) {
+  public static Class<?> cannonical2Class(String cannonical, ClassLoader loader) {/*
     if (!isValidJavaType(cannonical))
       throw new IllegalArgumentException(cannonical + " is not a valid Java type");
 
@@ -103,7 +103,7 @@ public class ReflectionUtils {
         try {
           String className = outer.append(
               primitiveArrayMap.get(firstPart)).toString();
-          return TdlClassLoader.loadClass(className);
+          return TDLClassLoaderProvider.loadClass(className);
         } catch (Exception e) {
           throw new IllegalArgumentException(cannonical
               + " is not valid in this context", e);
@@ -114,7 +114,7 @@ public class ReflectionUtils {
           String className = outer.append('L')
               .append(new String(canArray, 0, firstBracketIndex))
               .append(';').toString();
-          return TdlClassLoader.loadClass(className);
+          return TDLClassLoaderProvider.loadClass(className);
         } catch (Exception e) {
           throw new IllegalArgumentException(cannonical
               + " is not valid in this context", e);
@@ -123,11 +123,13 @@ public class ReflectionUtils {
     } else {
       // not array, not primitive
       try {
-        return TdlClassLoader.loadClass(cannonical);
+        return TDLClassLoaderProvider.loadClass(cannonical);
       } catch (Exception e) {
         throw new IllegalArgumentException(cannonical
             + " is not valid in this context", e);
       }
-    }
+    }*/
+
+    return null;
   }
 }
