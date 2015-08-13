@@ -10,9 +10,17 @@ import minderengine.{MinderUtils, Wrapper}
 
 import scala.collection.mutable
 import scala.collection.mutable.MutableList
-import java.util.Date
+import java.util.{Properties, Date}
 
-abstract class MinderTdl(val variableWrapperMapping: Map[String, String], val run: java.lang.Boolean) extends Utils {
+/**
+ *
+ * @param variableWrapperMapping
+ *   a map that contains the parameter wrapper names and their actual mappings.
+ *   The map keys are parameter names, the values are:
+ *   WrapperName|Version (separated by a |)
+ * @param run
+ */
+abstract class MinderTdl(val variableWrapperMapping: scala.collection.mutable.Map[String, String], val run: java.lang.Boolean) extends Utils {
   //https://joinup.ec.europa.eu/system/files/project/94/f7/9e/ADMS_XML_Schema_v1.01.zip
 
   val JOINUP_CORE = "https://joinup.ec.europa.eu/site/core_location/"
@@ -24,8 +32,6 @@ abstract class MinderTdl(val variableWrapperMapping: Map[String, String], val ru
   implicit def int2MinderInt(int: Int) = MinderInt(int)
 
   implicit def anyRef2MinderAnyRef(anyRef: AnyRef) = MinderAny(anyRef)
-
-  var ThisPackage: String = ""
 
   val param1: Int = 1
   val param2: Int = 2
@@ -48,7 +54,6 @@ abstract class MinderTdl(val variableWrapperMapping: Map[String, String], val ru
   val param19: Int = 19
   val param20: Int = 20
 
-
   val automatically = List[ParameterPipe]()
 
   var SlotDefs = new util.ArrayList[Rivet]()
@@ -62,20 +67,23 @@ abstract class MinderTdl(val variableWrapperMapping: Map[String, String], val ru
 
   var debug: Any => Unit = (any: Any) => println(any)
   var debugThrowable: (Any, Throwable) => Unit = (any: Any, throwable: Throwable) => {
-    println(any); throwable.printStackTrace()
+    println(any);
+    throwable.printStackTrace()
   }
   var info: Any => Unit = (any: Any) => println(any)
   var infoThrowable: (Any, Throwable) => Unit = (any: Any, throwable: Throwable) => {
-    println(any); throwable.printStackTrace()
+    println(any);
+    throwable.printStackTrace()
   }
   var error: Any => Unit = (any: Any) => println(any)
   var errorThrowable: (Any, Throwable) => Unit = (any: Any, throwable: Throwable) => {
-    println(any); throwable.printStackTrace()
+    println(any);
+    throwable.printStackTrace()
   }
 
   var exception: RuntimeException = null;
 
-  def THROWLATER(exception: RuntimeException): Unit ={
+  def THROWLATER(exception: RuntimeException): Unit = {
     this.exception = exception;
   }
 
@@ -206,7 +214,7 @@ case class MinderStr(vall: String) {
       field = tpl._2;
       field.get(refObj).asInstanceOf[Rivet]
     } else {
-      val clazz: Class[_] = TdlClassLoader.loadClass(actualClassName)
+      val clazz: Class[_] = this.getClass.getClassLoader.loadClass(actualClassName)
       refObj = clazz.getConstructors()(0).newInstance(tdl.variableWrapperMapping, tdl.run).asInstanceOf[AnyRef]
       field = clazz.getDeclaredField(vall);
       field setAccessible true

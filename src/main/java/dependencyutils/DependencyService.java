@@ -18,6 +18,7 @@ import org.eclipse.aether.util.graph.transformer.ConflictResolver;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -25,22 +26,26 @@ import java.util.List;
  * Created by melis on 25/05/15.
  */
 public class DependencyService {
-  private static DependencyService instance;
-
-  public synchronized static DependencyService getInstance() {
-    if (null == instance) {
-      instance = new DependencyService();
-    }
-    return instance;
-  }
-
-  private DependencyService() {
-  }
-
   private RepositorySystem repositorySystem;
   private DefaultRepositorySystemSession session;
   private List<RemoteRepository> repositoryList;
   public List<String> allResolvedDependencies;
+
+  /**
+   * The direct dependencies that have been provided to the system and should be resolved
+   */
+  private List<String> dependencies;
+
+  public DependencyService(String dependencyString) {
+    createRepositorySystem("dependencies" + File.separator);
+    //DependencyService.getInstance().addRepository("central", "default", "http://central.maven.org/maven2/");
+    //or you may use directly DependencyService.getInstance().addMavenCentralRepository();
+    //addRepository("local", "default", "file:///Users/yerlibilgin/.m2");
+    addRepository("Eid public repository", "default", "http://eidrepo:8081/nexus/content/groups/public/");
+    //or you may use directly DependencyService.getInstance().addEidRepository();
+    allResolvedDependencies = new ArrayList<String>();
+    dependencies = Arrays.asList(dependencyString.split("\\n"));
+  }
 
   public void createRepositorySystem(String localRepoDirectory) {
     /**
@@ -72,29 +77,15 @@ public class DependencyService {
     repositoryList.add(Booter.addRepository(id, type, url));
   }
 
-  public String getClassPathString(String dependencyString, String directoryName) {
-    createRepositorySystem("dependencies" + File.separator);
-
-    //DependencyService.getInstance().addRepository("central", "default", "http://central.maven.org/maven2/");
-    //or you may use directly DependencyService.getInstance().addMavenCentralRepository();
-
-    //addRepository("local", "default", "file:///Users/yerlibilgin/.m2");
-    addRepository("Eid public repository", "default", "http://eidrepo:8081/nexus/content/groups/public/");
-    //or you may use directly DependencyService.getInstance().addEidRepository();
-
-
-    allResolvedDependencies = new ArrayList<String>();
-
-    String[] dependencies = dependencyString.split("\\n");
-    for (int i = 0; i < dependencies.length; i++) {
-      String currentItem = dependencies[i];
-      downloadArtifactWithAllDependencies(currentItem);
+  public String getClassPathString() {
+    for(String dependency : dependencies){
+      downloadArtifactWithAllDependencies(dependency);
     }
 
     return generateClassPathStringForArtifact();
   }
 
-  public void downloadArtifactWithAllDependencies(String artifactInfo) {
+  private void downloadArtifactWithAllDependencies(String artifactInfo) {
     /**
      * Specify the artifact eg. "org.apache.maven:maven-aether-provider:3.1.0"
      */
@@ -126,7 +117,7 @@ public class DependencyService {
   /**
    * Generates the classpath for updating dependencies dynamically.
    */
-  public String generateClassPathStringForArtifact() {
+  private String generateClassPathStringForArtifact() {
     //mvn exec:exec -Dexec.args="-classpath %classpath com.acme.Main" \ -Dexec.executable="java"
     String classPathString = "";
     for (Iterator<String> i = allResolvedDependencies.iterator(); i.hasNext(); ) {

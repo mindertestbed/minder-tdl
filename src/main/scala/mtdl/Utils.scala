@@ -2,6 +2,7 @@ package mtdl
 
 import java.io._
 import java.net.URL
+import java.util.Properties
 import java.util.zip.{ZipEntry, ZipInputStream}
 import javax.net.ssl.HttpsURLConnection
 
@@ -9,7 +10,32 @@ import javax.net.ssl.HttpsURLConnection
  * Created by yerlibilgin on 18/05/15.
  */
 class Utils {
+  /**
+   * Added after the task: 187 : Migrate the ASSETS from the user to the groups
+   */
   var AssetPath: String = ""
+  var ThisPackage: String = ""
+  var Version: String = ""
+
+
+  /**
+   *
+   * SINCE TASK:  #189 Add Argument (parameter) support to Scripts
+   *
+   * This collection holds parameters for the script when
+   * the script is going to run.
+   */
+  val parameters = new Properties
+
+  def getParameter(key: String, default: String = ""): String = parameters.getProperty(key, default)
+
+  def addParameter(key: String, value: String) = parameters.put(key, value);
+
+  def setParams(parms: String): Unit = {
+    parameters.clear();
+    parameters.load(new ByteArrayInputStream(parms.getBytes()));
+  }
+
   var dlCache = new File("dlcache");
   dlCache.mkdirs()
 

@@ -15,6 +15,13 @@ package mtdl
 object SignalSlotInfoProvider {
   var provider: ISignalSlotInfoProvider = null
 
+  /**
+   * Delegate the signal-slot search to the actual underlying signal-slot info provider implementation
+   * @param wrapperId
+   *   the wrapper id (either WrapperName|Version or WrapperName)
+   * @param signature
+   * @return
+   */
   def getSignalSlot(wrapperId: String, signature: String): SignalSlot = {
     if (provider == null)
       throw new IllegalStateException("No signal-slot info provider registered")
