@@ -16,7 +16,7 @@ case class SlotImpl(override val wrapperId: String, override val signature: Stri
       })
     }).toList)
 
-    tdl.SlotDefs.add(rivet);
+    tdl.RivetDefs.add(rivet);
     rivet
   }
 
@@ -41,7 +41,7 @@ case class SlotImpl(override val wrapperId: String, override val signature: Stri
 
   override def asIs(implicit tdl: MinderTdl): Rivet = {
     val rivet = new Rivet(this, List())
-    tdl.SlotDefs.add(rivet);
+    tdl.RivetDefs.add(rivet);
     rivet
   }
 
@@ -49,6 +49,8 @@ case class SlotImpl(override val wrapperId: String, override val signature: Stri
     if (!o.isInstanceOf[SignalImpl]) false
     else super.equals(o)
   }
+
+  override def handleTimeout(rte: RuntimeException): Unit = throw rte
 }
 
 

@@ -56,7 +56,7 @@ abstract class MinderTdl(val variableWrapperMapping: scala.collection.mutable.Ma
 
   val automatically = List[ParameterPipe]()
 
-  var SlotDefs = new util.ArrayList[Rivet]()
+  var RivetDefs = new util.ArrayList[Rivet]()
 
   val wrapperDefs: mutable.Set[String] = mutable.Set[String]()
 
@@ -162,6 +162,36 @@ abstract class MinderTdl(val variableWrapperMapping: scala.collection.mutable.Ma
   def mapping(paramTriple: ParameterPipe*): List[ParameterPipe] = {
     paramTriple.toList
   }
+
+  /**
+   * Added since version 0.2.3 in order to omit the unreadable rivet syntax for NULL rivets
+   */
+  def runAsRivet(func : () => Unit): Unit ={
+    NULLSLOT shall map(NULL onto 1 using { (any: Any) => {
+      func()
+      any
+    }})
+  }
+
+  /**
+   * Added since version 0.2.3 in order to omit unreadable rivet syntax where
+   * only one signal is used and forwarded to NULLSLOT.
+   *
+   * @param signalSlot
+   * @param f
+   * @return
+   */
+  def waitForSignal(signalSlot: SignalSlot)(f : (Any) => Any): Unit ={
+    NULLSLOT shall(use(signalSlot))(mapping(1 onto 1 using f))
+  }
+
+  /**
+   * A simply forwarding method for increasing readability.
+   * @param f
+   * @return
+   */
+  def using(f : (Any) => Any): (Any => Any) = f
+
 }
 
 case class MinderStr(vall: String) {
@@ -221,7 +251,7 @@ case class MinderStr(vall: String) {
       cache.put(actualClassName, (refObj, field));
     }
     rivet = field.get(refObj).asInstanceOf[Rivet]
-    tdl.SlotDefs.add(rivet);
+    tdl.RivetDefs.add(rivet);
     rivet
   }
 

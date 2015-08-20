@@ -85,4 +85,6 @@ abstract class SignalSlot(val wrapperId: String, val signature: String) {
    */
   def asIs(implicit tdl: MinderTdl): Rivet
 
+  def handleTimeout(rte: RuntimeException) : Unit;
+
 }
