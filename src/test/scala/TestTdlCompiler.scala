@@ -61,12 +61,12 @@ class TestTdlCompiler extends Specification {
 
       val minder: MinderTdl = createInstance(minderClass, true, "$wrapper0" -> "B", "$wrapper1" -> "C")
 
-      minder.SlotDefs.foreach(
+      minder.RivetDefs.foreach(
         rivet => {
           println(rivet.describe())
         }
       )
-      minder.SlotDefs.size must_== (1)
+      minder.RivetDefs.size must_== (1)
     }
 
     "compile and recompile a valid tdl file containing NULL SLOTS" in {
@@ -78,12 +78,12 @@ class TestTdlCompiler extends Specification {
 
       val minder: MinderTdl = createInstance(minderClass, true, "$C2" -> "Domibus2", "$C3" -> "Domibus3")
 
-      minder.SlotDefs.foreach(
+      minder.RivetDefs.foreach(
         rivet => {
           println(rivet.describe())
         }
       )
-      minder.SlotDefs.size must_== (6)
+      minder.RivetDefs.size must_== (6)
     }
 
   }
@@ -102,12 +102,12 @@ class TestTdlCompiler extends Specification {
     "recompile a valid tdl file" in {
       val minderClass = TdlCompiler.compileTdl("myildiz83@gmail.com", new File("sampletdl/SampleTestCase12.tdl"))
       val minder = createInstance(minderClass, true, "$wrapper0" -> "B", "$wrapper1" -> "C")
-      minder.SlotDefs.foreach(
+      minder.RivetDefs.foreach(
         rivet => {
           println(rivet.describe())
         }
       )
-      minder.SlotDefs.size must_== (5)
+      minder.RivetDefs.size must_== (5)
     }
 
     "compile a valid tdl file that references another" in {
@@ -115,7 +115,7 @@ class TestTdlCompiler extends Specification {
       val minderClass = TdlCompiler.compileTdl("melis@gmail.com", new File("sampletdl/SampleTestCase2.tdl"))
       val minder = createInstance(minderClass, true, "$wrapper0" -> "B", "$wrapper1" -> "C")
 
-      minder.SlotDefs.foreach(
+      minder.RivetDefs.foreach(
         rivet => {
           println(rivet.describe())
         }
@@ -145,16 +145,16 @@ class TestTdlCompiler extends Specification {
       val tc2: mtdl.MinderTdl = createInstance(cls, true, "$wrapper0" -> "B", "$wrapper1" -> "C");
 
       "keep the list of its rivets" in {
-        tc1.SlotDefs.size must be_==(5)
+        tc1.RivetDefs.size must be_==(5)
       }
 
       "be able to reuse other rivets" in {
-        tc2.SlotDefs.size must be_==(2)
-        //   tc2.SlotDefs(0) must beEqualTo(tc1.SlotDefs(2))
-        //   tc2.SlotDefs(1) must beEqualTo(tc1.SlotDefs(3))
+        tc2.RivetDefs.size must be_==(2)
+        //   tc2.RivetDefs(0) must beEqualTo(tc1.RivetDefs(2))
+        //   tc2.RivetDefs(1) must beEqualTo(tc1.RivetDefs(3))
       }
       "have equal param# and paramPipe#" in {
-        tc1.SlotDefs.get(0).slot.params.size must be_==(tc1.SlotDefs.get(0).pipes.size)
+        tc1.RivetDefs.get(0).slot.params.size must be_==(tc1.RivetDefs.get(0).pipes.size)
       }
     }*/
 
