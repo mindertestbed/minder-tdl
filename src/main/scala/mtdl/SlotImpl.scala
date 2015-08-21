@@ -49,8 +49,6 @@ case class SlotImpl(override val wrapperId: String, override val signature: Stri
     if (!o.isInstanceOf[SignalImpl]) false
     else super.equals(o)
   }
-
-  override def handleTimeout(rte: RuntimeException): Unit = throw rte
 }
 
 

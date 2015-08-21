@@ -12,7 +12,5 @@ case class Variable(override val wrapperId: String, override val signature: Stri
   override def asIs(implicit tdl: MinderTdl): Rivet = {
     throw new IllegalStateException("the method asIs is forbidden for a Variable")
   }
-
-  override def handleTimeout(rte: RuntimeException): Unit = throw rte
 }
 

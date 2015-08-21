@@ -85,6 +85,16 @@ abstract class SignalSlot(val wrapperId: String, val signature: String) {
    */
   def asIs(implicit tdl: MinderTdl): Rivet
 
-  def handleTimeout(rte: RuntimeException) : Unit;
+  /**
+   * default signal timeout handler throws the exception
+   */
+  var timeoutHandler: (RuntimeException => Unit) = (rte: RuntimeException) => {
+    throw rte
+  }
+
+  def handleTimeout(rte: RuntimeException): Unit = {
+    timeoutHandler(rte);
+  }
+
 
 }

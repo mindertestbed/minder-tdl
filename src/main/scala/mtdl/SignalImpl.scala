@@ -4,14 +4,6 @@ package mtdl
  * Created by yerlibilgin on 05/12/14.
  */
 case class SignalImpl(override val wrapperId: String, override val signature: String) extends SignalSlot(wrapperId, signature) {
-
-  /**
-   * default signal timeout handler throws the exception
-   */
-  var timeoutHandler: (RuntimeException => Unit) = (rte: RuntimeException) => {
-    throw rte
-  }
-
   override def shall(lst: List[ParameterPipe]*)(implicit tdl: MinderTdl): Rivet = {
     throw new IllegalStateException("the method shall is forbidden for a signal")
   }
@@ -23,10 +15,6 @@ case class SignalImpl(override val wrapperId: String, override val signature: St
   override def equals(o: Any): Boolean = {
     if (!o.isInstanceOf[SignalImpl]) false
     else super.equals(o)
-  }
-
-  override def handleTimeout(rte: RuntimeException): Unit = {
-    timeoutHandler(rte);
   }
 }
 
