@@ -2,9 +2,20 @@ package mtdl
 
 import java.io._
 import java.net.URL
-import java.util.Properties
-import java.util.zip.{ZipEntry, ZipInputStream}
+import java.util
+import java.util.{Iterator, Properties}
+import java.util.zip.{GZIPInputStream, GZIPOutputStream, ZipEntry, ZipInputStream}
 import javax.net.ssl.HttpsURLConnection
+import javax.xml.XMLConstants
+import javax.xml.namespace.NamespaceContext
+import javax.xml.transform.dom.DOMSource
+import javax.xml.transform.stream.{StreamSource, StreamResult}
+import javax.xml.transform.{Source, OutputKeys, TransformerFactory, Transformer}
+import javax.xml.validation.{Validator, SchemaFactory, Schema}
+import javax.xml.xpath.{XPathExpressionException, XPathFactory, XPathConstants, XPath}
+import iso_schematron_xslt2.SchematronClassResolver
+import org.w3c.dom._
+import scala.collection.JavaConversions._
 
 /**
  * Created by yerlibilgin on 18/05/15.
@@ -16,6 +27,13 @@ class Utils {
   var AssetPath: String = ""
   var ThisPackage: String = ""
   var Version: String = ""
+
+
+  System.setProperty("javax.xml.transform.TransformerFactory", "net.sf.saxon.TransformerFactoryImpl");
+
+  private val resolver: SchematronClassResolver = new SchematronClassResolver
+  private val tFactory: TransformerFactory = TransformerFactory.newInstance
+  tFactory.setURIResolver(resolver)
 
 
   /**
@@ -198,6 +216,252 @@ class Utils {
       }
     }
   }
+
+  /**
+   * compress the given byte array
+   *
+   * @param plain
+   * @return
+   */
+  def gzip(plain: Array[Byte]): Array[Byte] = {
+    val bais: ByteArrayInputStream = new ByteArrayInputStream(plain)
+    val baos: ByteArrayOutputStream = new ByteArrayOutputStream
+    gzip(bais, baos)
+    baos.toByteArray
+  }
+
+  def gunzip(compressed: Array[Byte]): Array[Byte] = {
+    val bais: ByteArrayInputStream = new ByteArrayInputStream(compressed)
+    val baos: ByteArrayOutputStream = new ByteArrayOutputStream
+    gunzip(bais, baos)
+    baos.toByteArray
+  }
+
+  /**
+   * Compress the given stream as GZIP
+   *
+   * @param inputStream
+   * @param outputStream
+   */
+  def gzip(inputStream: InputStream, outputStream: OutputStream) {
+    try {
+      val gzipOutputStream: GZIPOutputStream = new GZIPOutputStream(outputStream, true)
+      transferData(inputStream, gzipOutputStream)
+      gzipOutputStream.close
+    }
+    catch {
+      case e: Exception => {
+        throw new RuntimeException("GZIP Compression failed")
+      }
+    }
+  }
+
+  /**
+   * Decompress the given stream that contains gzip data
+   *
+   * @param inputStream
+   * @param outputStream
+   */
+  def gunzip(inputStream: InputStream, outputStream: OutputStream) {
+    try {
+      val gzipInputStream: GZIPInputStream = new GZIPInputStream(inputStream)
+      transferData(gzipInputStream, outputStream)
+      gzipInputStream.close
+    }
+    catch {
+      case e: Exception => {
+        throw new RuntimeException("GZIP decompression failed")
+      }
+    }
+  }
+
+  @throws(classOf[Exception])
+  def transferData(inputStream: InputStream, outputStream: OutputStream) {
+    val chunk: Array[Byte] = new Array[Byte](1024)
+    var read: Int = -1
+    while ((({
+      read = inputStream.read(chunk, 0, chunk.length);
+      read
+    })) > 0) {
+      outputStream.write(chunk, 0, read)
+    }
+  }
+
+  def prettyPrint(node: Node, indentAmount: Int = 2): String = {
+    var transformer: Transformer = null
+    try {
+      transformer = TransformerFactory.newInstance.newTransformer
+      transformer.setOutputProperty(OutputKeys.INDENT, "yes")
+      transformer.setOutputProperty(OutputKeys.DOCTYPE_PUBLIC, "yes")
+      transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "" + indentAmount)
+      val result: StreamResult = new StreamResult(new StringWriter)
+      val source: DOMSource = new DOMSource(node)
+      transformer.transform(source, result)
+      val xmlString: String = result.getWriter.toString
+      xmlString
+    }
+    catch {
+      case e: Exception => {
+        e.printStackTrace
+        return ""
+      }
+    }
+  }
+
+  /**
+   * Checks the schema of the xml WRT the given xsd and returns the result
+   *
+   * @param xsd the schema definition that will be used for verification
+   * @param xml the xml that will be verified
+   * @return the result of the verification process
+   */
+  def verifyXsd(xsd: Array[Byte], xml: Array[Byte]) {
+    var schema: Schema = null
+    try {
+      val schemaFactory: SchemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
+      schema = schemaFactory.newSchema(new StreamSource(new ByteArrayInputStream(xsd)))
+    }
+    catch {
+      case ex: Exception => {
+        throw new RuntimeException("Unable to parse schema", ex)
+      }
+    }
+    try {
+      val xmlFile: Source = new StreamSource(new ByteArrayInputStream(xml))
+      val validator: Validator = schema.newValidator
+      validator.validate(xmlFile)
+    }
+    catch {
+      case e: Exception => {
+        e.printStackTrace
+        throw new RuntimeException("XML Verification failed", e)
+      }
+    }
+  }
+
+  def verifySchematron(sch: Array[Byte], xml: Array[Byte], properties: Properties = null) {
+    val bSchematron: ByteArrayInputStream = new ByteArrayInputStream(sch)
+    val bXml: ByteArrayInputStream = new ByteArrayInputStream(xml)
+    val bOut: ByteArrayOutputStream = new ByteArrayOutputStream
+    verifySchematronStream(bSchematron, bXml, bOut, properties)
+    val result: Array[Byte] = bOut.toByteArray
+    val str: String = new String(result)
+    if (str.contains("failed")) {
+      throw new RuntimeException("Schematron verification failed")
+    }
+  }
+
+  /**
+   * Simple transformation method.
+   *
+   * @param xslStream    - The input stream that the xsl will be read from
+   * @param sourceStream - Input that the xml for verification will be read from.
+   * @param outputStream - The output stream that the result will be written into.
+   */
+  def simpleTransformStream(xslStream: InputStream, sourceStream: InputStream, outputStream: OutputStream, properties: Properties = null) {
+    try {
+      val transformer: Transformer = tFactory.newTransformer(new StreamSource(xslStream))
+      for (property <- properties.stringPropertyNames()) {
+        transformer.setParameter(property, properties.getProperty(property))
+      }
+      transformer.transform(new StreamSource(sourceStream), new StreamResult(outputStream))
+    }
+    catch {
+      case e: Exception => {
+        throw new RuntimeException(e)
+      }
+    }
+  }
+
+  /**
+   * Simple transformation method.
+   *
+   * @param xsl - The byte array that includes the xsl
+   * @param xml - The byte array that includes the xml
+   * @return result as byte []
+   */
+  def simpleTransform(xsl: Array[Byte], xml: Array[Byte], properties: Properties = null): Array[Byte] = {
+    val bXsl: ByteArrayInputStream = new ByteArrayInputStream(xsl)
+    val bXml: ByteArrayInputStream = new ByteArrayInputStream(xml)
+    val baos: ByteArrayOutputStream = new ByteArrayOutputStream
+    simpleTransformStream(bXsl, bXml, baos, properties)
+    baos.toByteArray
+  }
+
+  /**
+   * Performs schematron verification with the given schematrno file on the provided xml
+   *
+   * @param schematron
+   * @param xml
+   * @param result
+   */
+  def verifySchematronStream(schematron: InputStream, xml: InputStream, result: OutputStream, properties: Properties = null) {
+    val baos: ByteArrayOutputStream = new ByteArrayOutputStream
+    simpleTransformStream(resolver.rstrm("iso_schematron_xslt2/iso_dsdl_include.xsl"), schematron, baos)
+    var bais: ByteArrayInputStream = new ByteArrayInputStream(baos.toByteArray)
+    baos.reset
+    simpleTransformStream(resolver.rstrm("iso_schematron_xslt2/iso_abstract_expand.xsl"), bais, baos)
+    bais = new ByteArrayInputStream(baos.toByteArray)
+    baos.reset
+    simpleTransformStream(resolver.rstrm("iso_schematron_xslt2/iso_svrl_for_xslt2.xsl"), bais, baos)
+    bais = new ByteArrayInputStream(baos.toByteArray)
+    baos.reset
+    simpleTransformStream(bais, xml, result, properties)
+  }
+
+  private val xPath: XPath = {
+    val xPath: XPath = XPathFactory.newInstance.newXPath
+    xPath.setNamespaceContext(new NamespaceContext {
+      def getNamespaceURI(prefix: String) = "*"
+      def getPrefix(namespace: String) = null
+      def getPrefixes(namespace: String) = null
+    })
+    xPath
+  }
+
+  def xpathQuerySingleNode(node: Node, xpath: String): Node = {
+    try {
+      val o: AnyRef = xPath.evaluate(xpath, node, XPathConstants.NODE)
+      if (o == null) throw new RuntimeException("No match for [" + xpath + "]")
+      o.asInstanceOf[Node]
+    }
+    catch {
+      case e: XPathExpressionException => {
+        throw new RuntimeException(e)
+      }
+    }
+  }
+
+  def xpathQueryList(node: Node, xpath: String): List[Node] = {
+    try {
+      val o: AnyRef = xPath.evaluate(xpath, node, XPathConstants.NODESET)
+      if (o == null) throw new RuntimeException("No match for [" + xpath + "]")
+      val list: NodeList = o.asInstanceOf[NodeList]
+
+      val els = new scala.collection.mutable.MutableList[Node]
+      var i = 0
+      while (i < list.getLength) {
+        els += (o.asInstanceOf[NodeList]).item(i)
+        i += 1;
+      }
+
+      els.toList
+    } catch {
+      case e: XPathExpressionException => {
+        throw new RuntimeException(e)
+      }
+    }
+  }
+
+
+  def createProperties(tuples: Tuple2[String,String]*) : Properties = {
+    val properties = new Properties
+    for (tuple <- tuples){
+      properties.put(tuple._1, tuple._2);
+    }
+
+    properties
+  }
 }
 
 
@@ -222,6 +486,8 @@ case class MinderInt(in: Int) {
     p.select = (a: Any) => in;
     p
   }
+
+  def -->(out: Int) = onto(out)
 }
 
 /**
@@ -241,10 +507,12 @@ case class MinderAny(src: Any) {
     p.select = (a: Any) => src;
     p
   }
+
+  def -->(out: Int) = onto(out)
+
 }
 
-
-class MinderNull{
+class MinderNull {
   /**
    * When a value is mapped onto <code>out</code>, then
    * it is returned in the default converter function.
@@ -257,5 +525,7 @@ class MinderNull{
     p.select = (a: Any) => null;
     p
   }
+
+  def -->(out: Int) = onto(out)
 }
 

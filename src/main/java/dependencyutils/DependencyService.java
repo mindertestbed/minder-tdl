@@ -44,7 +44,10 @@ public class DependencyService {
     addRepository("Eid public repository", "default", "http://eidrepo:8081/nexus/content/groups/public/");
     //or you may use directly DependencyService.getInstance().addEidRepository();
     allResolvedDependencies = new ArrayList<String>();
-    dependencies = Arrays.asList(dependencyString.split("\\n"));
+    if (dependencyString != null)
+      dependencies = Arrays.asList(dependencyString.split("\\n"));
+    else
+      dependencies = new ArrayList<>();
   }
 
   public void createRepositorySystem(String localRepoDirectory) {
@@ -78,7 +81,7 @@ public class DependencyService {
   }
 
   public String getClassPathString() {
-    for(String dependency : dependencies){
+    for (String dependency : dependencies) {
       downloadArtifactWithAllDependencies(dependency);
     }
 

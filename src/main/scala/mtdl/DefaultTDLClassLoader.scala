@@ -35,7 +35,7 @@ class DefaultTDLClassLoader(urls: Array[URL], dependencyClassLoader: DependencyC
         }
       }
 
-      if (clz == null) {
+      if (clz == null && dependencyClassLoader != null) {
         //try me one last time
         println("Probably this is a group dependency, Try dependency loader")
         clz = dependencyClassLoader.loadClass(name)

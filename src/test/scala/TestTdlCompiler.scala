@@ -63,6 +63,11 @@ class TestTdlCompiler extends Specification {
 
       minder.RivetDefs.foreach(
         rivet => {
+
+          class Abc extends MinderTdl{
+            val c = 1 --> 1
+          }
+
           println(rivet.describe())
         }
       )

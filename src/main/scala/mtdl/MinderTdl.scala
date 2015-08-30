@@ -87,6 +87,10 @@ abstract class MinderTdl(val variableWrapperMapping: scala.collection.mutable.Ma
     this.exception = exception;
   }
 
+  def THROWLATER(message: String): Unit = {
+    this.exception = new RuntimeException(message);
+  }
+
   def DEBUG(any: Any): Unit = {
     debug(any)
   }
@@ -192,6 +196,8 @@ abstract class MinderTdl(val variableWrapperMapping: scala.collection.mutable.Ma
    */
   def using(f : (Any) => Any): (Any => Any) = f
 
+
+  //we need to evaluate free variables by reflection.
 }
 
 case class MinderStr(vall: String) {
