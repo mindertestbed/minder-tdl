@@ -12,7 +12,6 @@ import scala.io.Source
  */
 object TdlCompiler {
   private val lock = new Object
-
   val MINDERTDL_PACKAGE_NAME = "minderTdl"
 
   val SCALA_COMPILER = System.getProperty("SCALA_COMPILER", "scalac")

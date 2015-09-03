@@ -1,7 +1,7 @@
 import java.io.File
 
 import mtdl._
-import org.specs2.mutable._
+import org.specs2._
 
 import scala.collection.JavaConversions._
 
@@ -64,7 +64,7 @@ class TestTdlCompiler extends Specification {
       minder.RivetDefs.foreach(
         rivet => {
 
-          class Abc extends MinderTdl{
+          class Abc extends MinderTdl {
             val c = 1 --> 1
           }
 

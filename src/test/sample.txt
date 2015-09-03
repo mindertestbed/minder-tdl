@@ -1,0 +1,77 @@
+import minder.as4Utils.AS4Utils._
+import org.oasis_open.docs.ebxml_msg.ebms.v3_0.ns.core._200704.{MessageInfo, Messaging, PartyId}
+
+import scala.collection.JavaConversions._
+
+val customPayloadId = "custompayload@minder|application/octet-stream"
+val customPayload = "!! Modify me after submission, if you dare!!".getBytes
+//val xmlPayloadId = "xmlpayload@minder|text/xml"
+//val xmlPayload = "<min><der lang=\"it\">ho iniziato a imparare l'italiano da un mese</der></min>".getBytes
+
+val payloadMap = Mapper.mapMe(customPayloadId -> customPayload) //, xmlPayloadId -> xmlPayload)
+
+val service = "SRV_SIMPLE_ONEWAY"
+val action = "ACT_SIMPLE_ONEWAY"
+val expectedMessageId = "df"
+
+val sampleMessageId = "12345678-9abc-def0-1234-56789abcdef0@minder"
+val sampleRefToMessageId = "fedcba98-7654-3210-fedb-ca9876543210@minder"
+val sampleConversationId = "12345"
+runAsRivet(()=>{
+  if(expectedMessageId != rivet1.result)
+    THROWLATER("I expected " + expectedMessageId +  " but received " + rivet1.result)
+})
+
+
+val messaging: Messaging = createDefaultMessagingObject("AT", "DE", service, action, payloadMap)
+
+//provide the same party id type in order to make sure that we don't
+//receive an error for an NON existing id
+var partyId = new PartyId
+partyId.setValue("AT")
+partyId.setType(messaging.getUserMessage.getPartyInfo.getFrom.getPartyId.get(0).getType)
+messaging.getUserMessage.getPartyInfo.getFrom.getPartyId.add(partyId)
+
+partyId = new PartyId
+partyId.setValue("DE")
+partyId.setType(messaging.getUserMessage.getPartyInfo.getFrom.getPartyId.get(0).getType)
+messaging.getUserMessage.getPartyInfo.getTo.getPartyId.add(partyId)
+
+//send message to C1, it will submit the message to C2
+val rivet1 = "submitMessageToC2(org.oasis_open.docs.ebxml_msg.ebms.v3_0.ns.core._200704.Messaging, java.util.Map)" of "$backend" shall map(
+  messaging onto 1,
+  payloadMap onto 2)
+
+NULLSLOT shall(use("c1ReportStatus(java.lang.String,java.lang.String)" of "$backend")(
+  mapping (1 onto 1 using { (a: Any) => {
+    INFO("1 " + a)
+    a
+  }},
+    2 onto 2 using { (a: Any) => {
+      INFO("2 " + a)
+      a
+    }})))
+
+
+val signal = "c2SendMessage(byte[])" of "$as4Adapter"
+signal.timeout = 10000 //wait 10 seconds for Signal.
+//receive AS4 message from C2 and forward it to C3 (this should not work, if it works then there is a problem)
+"c3ReceiveMessage(byte[])" of "$as4Adapter" shall (
+  use(signal)(mapping(1 onto 1 using as4checker)))
+
+def as4checker(any: Any) : Any ={
+  //we should not have received the message, so throw later
+  THROWLATER(new RuntimeException("This test assertion is supposed to fail. An AS4 message was not expected here"));
+
+  val soapMessage = deserializeSOAPMessage(any.asInstanceOf[Array[Byte]])
+
+  INFO("PartyInfo")
+  //log the party info
+  INFO(prettyPrint(findSingleNode(soapMessage.getSOAPHeader, "//:PartyInfo")))
+
+  any
+}
+
+//send back the receipt to c2
+"onto(byte[])" of "$as4Adapter" shall (
+  use("c3SendReceipt(byte[])" of "$as4Adapter")(mapping(1 onto 1)))

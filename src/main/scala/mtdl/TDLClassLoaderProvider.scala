@@ -1,5 +1,6 @@
 package mtdl
 
+import java.io.File
 import java.net.{URL, URLClassLoader}
 import java.util
 
@@ -30,6 +31,7 @@ object TDLClassLoaderProvider {
   def loadClass(name: String, dependencyClassLoader: DependencyClassLoader): Class[_] = {
     var dependecyBufferList = new ListBuffer[URL]()
     dependecyBufferList += dir.toURI.toURL
+    //dependecyBufferList += new File("mtdl.jar").toURI.toURL
     val cl = new DefaultTDLClassLoader(dependecyBufferList.toArray, dependencyClassLoader)
     cl.loadClass(name)
   }

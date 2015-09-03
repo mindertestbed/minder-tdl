@@ -10,6 +10,9 @@ javacOptions in (Compile, compile) ++= Seq("-source", "1.8", "-target", "1.8")
 
 javacOptions in (doc) ++= Seq("-source", "1.8")
 
+resolvers += "Eid public repository" at "http://193.140.74.199:8081/nexus/content/groups/public/"
+
+resolvers += Resolver.mavenLocal
 
 scalaVersion := "2.11.7"
 
@@ -29,10 +32,10 @@ libraryDependencies ++= Seq(
   "org.eclipse.aether" % "aether-transport-http" % "1.0.2.v20150114",
   "org.eclipse.aether" % "aether-transport-wagon" % "1.0.2.v20150114",
   "org.apache.maven" % "maven-aether-provider" % "3.3.3",
-  "org.specs2" % "specs2_2.11" % "3.3.1" % "test"
+  "org.specs2" % "specs2_2.11" % "2.3.12" % "test"
 )
 
-publishTo := Some("eid releases" at "http://eidrepo:8081/nexus/content/repositories/releases")
+publishTo := Some("eid releases" at "http://193.140.74.199:8081/nexus/content/repositories/releases")
 
 credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
 

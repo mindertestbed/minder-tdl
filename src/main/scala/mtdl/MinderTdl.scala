@@ -21,10 +21,6 @@ import java.util.{Properties, Date}
  * @param run
  */
 abstract class MinderTdl(val variableWrapperMapping: scala.collection.mutable.Map[String, String], val run: java.lang.Boolean) extends Utils {
-  //https://joinup.ec.europa.eu/system/files/project/94/f7/9e/ADMS_XML_Schema_v1.01.zip
-
-  val JOINUP_CORE = "https://joinup.ec.europa.eu/site/core_location/"
-
   implicit val tdl = this;
 
   implicit def str2MinderStr(str: String) = MinderStr(str)
@@ -32,27 +28,6 @@ abstract class MinderTdl(val variableWrapperMapping: scala.collection.mutable.Ma
   implicit def int2MinderInt(int: Int) = MinderInt(int)
 
   implicit def anyRef2MinderAnyRef(anyRef: AnyRef) = MinderAny(anyRef)
-
-  val param1: Int = 1
-  val param2: Int = 2
-  val param3: Int = 3
-  val param4: Int = 4
-  val param5: Int = 5
-  val param6: Int = 6
-  val param7: Int = 7
-  val param8: Int = 8
-  val param9: Int = 9
-  val param10: Int = 10
-  val param11: Int = 11
-  val param12: Int = 12
-  val param13: Int = 13
-  val param14: Int = 14
-  val param15: Int = 15
-  val param16: Int = 16
-  val param17: Int = 17
-  val param18: Int = 18
-  val param19: Int = 19
-  val param20: Int = 20
 
   val automatically = List[ParameterPipe]()
 
@@ -67,6 +42,11 @@ abstract class MinderTdl(val variableWrapperMapping: scala.collection.mutable.Ma
 
   var debug: Any => Unit = (any: Any) => println(any)
   var debugThrowable: (Any, Throwable) => Unit = (any: Any, throwable: Throwable) => {
+    println(any);
+    throwable.printStackTrace()
+  }
+  var warn: Any => Unit = (any: Any) => println(any)
+  var warnThrowable: (Any, Throwable) => Unit = (any: Any, throwable: Throwable) => {
     println(any);
     throwable.printStackTrace()
   }
@@ -97,6 +77,14 @@ abstract class MinderTdl(val variableWrapperMapping: scala.collection.mutable.Ma
 
   def DEBUG(any: Any, throwable: Throwable): Unit = {
     debug(any, throwable)
+  }
+
+  def WARN(any: Any): Unit = {
+    warn(any)
+  }
+
+  def WARN(any: Any, throwable: Throwable): Unit = {
+    warn(any, throwable)
   }
 
   def INFO(any: Any): Unit = {
