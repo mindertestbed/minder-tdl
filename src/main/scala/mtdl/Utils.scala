@@ -2,11 +2,13 @@ package mtdl
 
 import java.io._
 import java.net.URL
+import java.security.MessageDigest
 import java.util
 import java.util.{Iterator, Properties}
 import java.util.zip.{GZIPInputStream, GZIPOutputStream, ZipEntry, ZipInputStream}
 import javax.net.ssl.HttpsURLConnection
 import javax.xml.XMLConstants
+import javax.xml.bind.DatatypeConverter
 import javax.xml.namespace.NamespaceContext
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.{StreamSource, StreamResult}
@@ -59,12 +61,65 @@ class Utils {
 
   def getAsset(asset: String) = new AssetProvider(AssetPath + "/" + asset)
 
+  def getHash(fullUrl: String): String = {
+    val cript = MessageDigest.getInstance("SHA-1");
+    cript.reset();
+    cript.update(fullUrl.getBytes("utf8"));
+    val hash = DatatypeConverter.printHexBinary(cript.digest())
+
+    hash.toString
+  }
+
   def download(url: String) = {
     val stream: ByteArrayOutputStream = new ByteArrayOutputStream();
 
-    //first check the cache for the url.
-    val cacheKey = url.replaceAll("\\p{Punct}", "_")
-    val fl = new File(dlCache.getAbsolutePath, cacheKey);
+    //CREATE DOWNLOAD PATH
+    var downloadLocation: String = dlCache.getAbsolutePath
+
+    //Remove "http://" from the url and split acc. to the /
+    var splittedUrl : Array[String] = null
+    if (url.startsWith("https"))
+      splittedUrl =url.substring(8).split("/")
+    else
+      splittedUrl =url.substring(7).split("/")
+
+    //If there is port, split that too
+    if (splittedUrl(0).contains(":")){
+      val address : Array[String]=  splittedUrl(0).split(":");
+      var addressWthPunct = address(0).replaceAll("\\p{Punct}", "_")
+      downloadLocation = downloadLocation + File.separator+ addressWthPunct
+      var tmp = new File(downloadLocation);
+      tmp.mkdirs()
+      println(downloadLocation)
+
+      addressWthPunct = address(1).replaceAll("\\p{Punct}", "_")
+      downloadLocation = downloadLocation + File.separator+ addressWthPunct
+      tmp = new File(downloadLocation);
+      tmp.mkdirs()
+      println(downloadLocation)
+
+    }else{
+      var addressWthPunct = splittedUrl(0).replaceAll("\\p{Punct}", "_")
+      downloadLocation =  downloadLocation + File.separator+ addressWthPunct
+      var tmp = new File(downloadLocation);
+      tmp.mkdirs()
+    }
+
+    var arraySize:Int = splittedUrl.length
+    for( i <- 1 until arraySize-1){
+      var addressWthPunct = splittedUrl(i).replaceAll("\\p{Punct}", "_")
+      downloadLocation = downloadLocation + File.separator+ splittedUrl(i)
+      println(downloadLocation)
+      var tmp = new File(downloadLocation);
+      tmp.mkdirs()
+    }
+
+    var fileName = splittedUrl(arraySize-1).replaceAll("\\p{Punct}", "_")
+    println(fileName)
+
+
+    val cacheKeyHash = getHash(fileName)
+    val fl = new File(downloadLocation, cacheKeyHash);
     if (fl.exists()) {
       var len: Int = 0
       val fis = new FileInputStream(fl)
@@ -87,6 +142,7 @@ class Utils {
       outs close;
       streamArr
     }
+
   }
 
   /**
@@ -115,10 +171,12 @@ class Utils {
    * @return
    */
   def downloadHttp(url: String, stream: OutputStream) = {
-    import sys.process._
-    import java.net.URL
+    import scala.io.Source
+    val html = Source.fromURL(url)
+    val s = html.mkString
+    //println(s)
 
-    new URL(url) #> stream
+    stream.write(s.getBytes())
   }
 
 
