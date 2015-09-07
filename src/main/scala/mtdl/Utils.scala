@@ -3,20 +3,22 @@ package mtdl
 import java.io._
 import java.net.URL
 import java.security.MessageDigest
-import java.util
-import java.util.{Iterator, Properties}
+import java.util.Properties
 import java.util.zip.{GZIPInputStream, GZIPOutputStream, ZipEntry, ZipInputStream}
 import javax.net.ssl.HttpsURLConnection
 import javax.xml.XMLConstants
 import javax.xml.bind.DatatypeConverter
 import javax.xml.namespace.NamespaceContext
+import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.transform.dom.DOMSource
-import javax.xml.transform.stream.{StreamSource, StreamResult}
-import javax.xml.transform.{Source, OutputKeys, TransformerFactory, Transformer}
-import javax.xml.validation.{Validator, SchemaFactory, Schema}
-import javax.xml.xpath.{XPathExpressionException, XPathFactory, XPathConstants, XPath}
+import javax.xml.transform.stream.{StreamResult, StreamSource}
+import javax.xml.transform.{OutputKeys, Source, Transformer, TransformerFactory}
+import javax.xml.validation.{Schema, SchemaFactory, Validator}
+import javax.xml.xpath.{XPath, XPathConstants, XPathExpressionException, XPathFactory}
+
 import iso_schematron_xslt2.SchematronClassResolver
 import org.w3c.dom._
+
 import scala.collection.JavaConversions._
 
 /**
@@ -397,6 +399,19 @@ class Utils {
     }
   }
 
+  val factory = DocumentBuilderFactory.newInstance
+  factory.setNamespaceAware(true)
+  val documentBuilder = factory.newDocumentBuilder();
+
+  def parseXml(xml: String) : Document = {
+    documentBuilder.parse(new ByteArrayInputStream(xml.getBytes));
+  }
+
+  def parseXmlByteArray(xml: Array[Byte]) : Document = {
+    documentBuilder.parse(new ByteArrayInputStream(xml));
+  }
+
+
   def verifySchematron(sch: Array[Byte], xml: Array[Byte], properties: Properties = null) {
     val bSchematron: ByteArrayInputStream = new ByteArrayInputStream(sch)
     val bXml: ByteArrayInputStream = new ByteArrayInputStream(xml)
@@ -542,6 +557,17 @@ case class MinderInt(in: Int) {
     //the default selection for a parameter pipe is to return the in value.
     //later the signal value might be passed.
     p.select = (a: Any) => in;
+    p
+  }
+
+  def -->(out: Int) = onto(out)
+}
+
+case class invokeLater(vall: () => Any){
+  def onto(out: Int) = {
+    val p = ParameterPipe(-1, out - 1);
+    //whatever happens, return the value.
+    p.select = (a: Any) => {vall()};
     p
   }
 
