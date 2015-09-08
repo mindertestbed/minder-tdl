@@ -38,11 +38,11 @@ object TdlCompiler {
 
     val packageNameSplit = packageName.split("\\.");
     val groupId = packageNameSplit(1);
-    println("compileTdl.groupId", groupId)
+    println("CompileTdl.groupId", groupId)
     //resolution is here
 
-    println("DEPENDENCYSTRING: " + dependencyString)
-    val dependencyClassLoader = if (dependencyString != null) DependencyClassLoaderCache.getDependencyClassLoader(dependencyString)
+    println("Dependency String: [" + dependencyString + "]")
+    val dependencyClassLoader = if (dependencyString != null && dependencyString.length != 0) DependencyClassLoaderCache.getDependencyClassLoader(dependencyString)
     else null
 
     //now at this point, check the hash of the tdl and make sure that we are not recomping over and over
@@ -94,11 +94,11 @@ object TdlCompiler {
         val executeString: String =
           SCALA_COMPILER + " -d ../tdlcls/ -language:postfixOps -feature -classpath " + depedencyClasspath +
             "../target/scala-2.11/classes/" +
-          File.pathSeparatorChar + "./tdlcls/" +
-          File.pathSeparatorChar + "../tdlcls/" +
-          File.pathSeparatorChar + "mtdl.jar" +
-          File.pathSeparatorChar + "../mtdl.jar " +
-          className + ".scala"
+            File.pathSeparatorChar + "./tdlcls/" +
+            File.pathSeparatorChar + "../tdlcls/" +
+            File.pathSeparatorChar + "mtdl.jar" +
+            File.pathSeparatorChar + "../mtdl.jar " +
+            className + ".scala"
 
         println(executeString);
         val process = Runtime.getRuntime.exec(executeString, null, srcDir)
@@ -127,8 +127,11 @@ object TdlCompiler {
     val packagePath = MINDERTDL_PACKAGE_NAME + "/" + packageInfo;
     val packageName = packagePath.replaceAll("/", ".")
 
-    println("DEPENDENCYSTRING: " + dependencyString)
-    val dependencyClassLoader = if (dependencyString != null) DependencyClassLoaderCache.getDependencyClassLoader(dependencyString)
+    println("PackagePath " + packagePath);
+    println("Package Name " + packageName)
+
+    println("Dependency String: [" + dependencyString + "]")
+    val dependencyClassLoader = if (dependencyString != null && dependencyString.length != 0) DependencyClassLoaderCache.getDependencyClassLoader(dependencyString)
     else null
 
     //now at this point, check the hash of the tdl and make sure that we are not recomping over and over
@@ -139,7 +142,8 @@ object TdlCompiler {
       new File("tdlcls").mkdirs();
 
       lock.synchronized {
-        val pw = new PrintWriter(new FileOutputStream("tdlsrc/" + className + ".scala"))
+        val fullFileName: String = packageName + "." + className + ".scala"
+        val pw = new PrintWriter(new FileOutputStream("tdlsrc/" + fullFileName))
 
         try {
           pw.println("package " + packageName);
@@ -163,7 +167,7 @@ object TdlCompiler {
             ""
           }
 
-        val process = Runtime.getRuntime.exec(SCALA_COMPILER + " -d ../tdlcls/ -language:postfixOps -feature -classpath " + depedencyClasspath + "../target/scala-2.11/classes/" + File.pathSeparatorChar + "./tdlcls/" + File.pathSeparatorChar + "../tdlcls/" + File.pathSeparatorChar + "mtdl.jar" + File.pathSeparatorChar + "../mtdl.jar " + className + ".scala", null, srcDir)
+        val process = Runtime.getRuntime.exec(SCALA_COMPILER + " -d ../tdlcls/ -language:postfixOps -feature -classpath " + depedencyClasspath + "../target/scala-2.11/classes/" + File.pathSeparatorChar + "./tdlcls/" + File.pathSeparatorChar + "../tdlcls/" + File.pathSeparatorChar + "mtdl.jar" + File.pathSeparatorChar + "../mtdl.jar " + fullFileName, null, srcDir)
         process.waitFor()
 
         val out = Source.fromInputStream(process.getInputStream).mkString

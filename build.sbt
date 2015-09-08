@@ -2,7 +2,7 @@ organization := "gov.tubitak.minder"
 
 name := "minder-tdl"
 
-version := "0.3.5"
+version := "0.3.6-beta1"
 
 resolvers += Resolver.mavenLocal
 
@@ -21,7 +21,7 @@ libraryDependencies ++= Seq(
   "org.scala-lang" % "scala-reflect" % "2.11.7",
   "org.scala-lang" % "scala-actors" % "2.11.7",
   "org.scala-lang" % "scala-compiler" % "2.11.7",
-  "org.scala-lang" % "scala-parser-combinators" % "2.11.0-M4",
+  //"org.scala-lang" % "scala-parser-combinators" % "2.11.0-M4",
   "gov.tubitak.minder" % "minder-common" % "0.3.1",
   "org.eclipse.aether" % "aether-api" % "1.0.2.v20150114",
   "org.eclipse.aether" % "aether-spi" % "1.0.2.v20150114",
