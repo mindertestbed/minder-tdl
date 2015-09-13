@@ -63,6 +63,9 @@ object TdlCompiler {
           pw.println("package " + packageName);
           pw.println()
           pw.println("import  mtdl._")
+          pw.println("import org.beybunproject.xmlContentVerifier._")
+          pw.println("import org.beybunproject.xmlContentVerifier.XmlContentVerifier._")
+          pw.println("import org.beybunproject.xmlContentVerifier.utils._")
 
           //import the root package of this packageInfo
 
@@ -149,6 +152,9 @@ object TdlCompiler {
           pw.println("package " + packageName);
           pw.println()
           pw.println("import  mtdl._")
+          pw.println("import org.beybunproject.xmlContentVerifier._")
+          pw.println("import org.beybunproject.xmlContentVerifier.XmlContentVerifier._")
+          pw.println("import org.beybunproject.xmlContentVerifier.utils._")
           pw.println()
           pw.println("object " + className + " extends mtdl.Utils{")
           pw.println("  AssetPath = \"" + assetPath + "\"")
@@ -167,7 +173,7 @@ object TdlCompiler {
             ""
           }
 
-        val process = Runtime.getRuntime.exec(SCALA_COMPILER + " -d ../tdlcls/ -language:postfixOps -feature -classpath " + depedencyClasspath + "../target/scala-2.11/classes/" + File.pathSeparatorChar + "./tdlcls/" + File.pathSeparatorChar + "../tdlcls/" + File.pathSeparatorChar + "mtdl.jar" + File.pathSeparatorChar + "../mtdl.jar " + fullFileName, null, srcDir)
+        val process = Runtime.getRuntime.exec(SCALA_COMPILER + " -d ../tdlcls/ -language:postfixOps -feature -classpath " + depedencyClasspath + "../target/scala-2.11/classes/" + File.pathSeparatorChar + "./tdlcls/" + File.pathSeparatorChar + "../tdlcls/" + File.pathSeparatorChar + "mtdl.jar" + File.pathSeparatorChar + "../mtdl.jar" + " " + fullFileName, null, srcDir)
         process.waitFor()
 
         val out = Source.fromInputStream(process.getInputStream).mkString

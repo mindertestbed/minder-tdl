@@ -2,7 +2,7 @@ organization := "gov.tubitak.minder"
 
 name := "minder-tdl"
 
-version := "0.3.6-beta1"
+version := "0.3.6-RC2"
 
 resolvers += Resolver.mavenLocal
 
@@ -33,7 +33,7 @@ libraryDependencies ++= Seq(
   "org.eclipse.aether" % "aether-transport-http" % "1.0.2.v20150114",
   "org.eclipse.aether" % "aether-transport-wagon" % "1.0.2.v20150114",
   "org.apache.maven" % "maven-aether-provider" % "3.3.3",
-  "org.specs2" % "specs2_2.11" % "2.3.12" % "test"
+  "org.specs2" % "specs2_2.11" % "2.3.12" % Test
 )
 
 publishTo := Some("eid releases" at "http://193.140.74.199:8081/nexus/content/repositories/releases")

@@ -6,20 +6,15 @@ import java.security.MessageDigest
 import java.util.Properties
 import java.util.zip.{GZIPInputStream, GZIPOutputStream, ZipEntry, ZipInputStream}
 import javax.net.ssl.HttpsURLConnection
-import javax.xml.XMLConstants
 import javax.xml.bind.DatatypeConverter
 import javax.xml.namespace.NamespaceContext
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.transform.dom.DOMSource
-import javax.xml.transform.stream.{StreamResult, StreamSource}
-import javax.xml.transform.{OutputKeys, Source, Transformer, TransformerFactory}
-import javax.xml.validation.{Schema, SchemaFactory, Validator}
+import javax.xml.transform.stream.StreamResult
+import javax.xml.transform.{OutputKeys, Transformer, TransformerFactory}
 import javax.xml.xpath.{XPath, XPathConstants, XPathExpressionException, XPathFactory}
 
-import iso_schematron_xslt2.SchematronClassResolver
 import org.w3c.dom._
-
-import scala.collection.JavaConversions._
 
 /**
  * Created by yerlibilgin on 18/05/15.
@@ -31,14 +26,6 @@ class Utils {
   var AssetPath: String = ""
   var ThisPackage: String = ""
   var Version: String = ""
-
-
-  System.setProperty("javax.xml.transform.TransformerFactory", "net.sf.saxon.TransformerFactoryImpl");
-
-  private val resolver: SchematronClassResolver = new SchematronClassResolver
-  private val tFactory: TransformerFactory = TransformerFactory.newInstance
-  tFactory.setURIResolver(resolver)
-
 
   /**
    *
@@ -79,44 +66,44 @@ class Utils {
     var downloadLocation: String = dlCache.getAbsolutePath
 
     //Remove "http://" from the url and split acc. to the /
-    var splittedUrl : Array[String] = null
+    var splittedUrl: Array[String] = null
     if (url.startsWith("https"))
-      splittedUrl =url.substring(8).split("/")
+      splittedUrl = url.substring(8).split("/")
     else
-      splittedUrl =url.substring(7).split("/")
+      splittedUrl = url.substring(7).split("/")
 
     //If there is port, split that too
-    if (splittedUrl(0).contains(":")){
-      val address : Array[String]=  splittedUrl(0).split(":");
+    if (splittedUrl(0).contains(":")) {
+      val address: Array[String] = splittedUrl(0).split(":");
       var addressWthPunct = address(0).replaceAll("\\p{Punct}", "_")
-      downloadLocation = downloadLocation + File.separator+ addressWthPunct
+      downloadLocation = downloadLocation + File.separator + addressWthPunct
       var tmp = new File(downloadLocation);
       tmp.mkdirs()
       println(downloadLocation)
 
       addressWthPunct = address(1).replaceAll("\\p{Punct}", "_")
-      downloadLocation = downloadLocation + File.separator+ addressWthPunct
+      downloadLocation = downloadLocation + File.separator + addressWthPunct
       tmp = new File(downloadLocation);
       tmp.mkdirs()
       println(downloadLocation)
 
-    }else{
+    } else {
       var addressWthPunct = splittedUrl(0).replaceAll("\\p{Punct}", "_")
-      downloadLocation =  downloadLocation + File.separator+ addressWthPunct
+      downloadLocation = downloadLocation + File.separator + addressWthPunct
       var tmp = new File(downloadLocation);
       tmp.mkdirs()
     }
 
-    var arraySize:Int = splittedUrl.length
-    for( i <- 1 until arraySize-1){
+    var arraySize: Int = splittedUrl.length
+    for (i <- 1 until arraySize - 1) {
       var addressWthPunct = splittedUrl(i).replaceAll("\\p{Punct}", "_")
-      downloadLocation = downloadLocation + File.separator+ splittedUrl(i)
+      downloadLocation = downloadLocation + File.separator + splittedUrl(i)
       println(downloadLocation)
       var tmp = new File(downloadLocation);
       tmp.mkdirs()
     }
 
-    var fileName = splittedUrl(arraySize-1).replaceAll("\\p{Punct}", "_")
+    var fileName = splittedUrl(arraySize - 1).replaceAll("\\p{Punct}", "_")
     println(fileName)
 
 
@@ -368,125 +355,25 @@ class Utils {
     }
   }
 
-  /**
-   * Checks the schema of the xml WRT the given xsd and returns the result
-   *
-   * @param xsd the schema definition that will be used for verification
-   * @param xml the xml that will be verified
-   * @return the result of the verification process
-   */
-  def verifyXsd(xsd: Array[Byte], xml: Array[Byte]) {
-    var schema: Schema = null
-    try {
-      val schemaFactory: SchemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
-      schema = schemaFactory.newSchema(new StreamSource(new ByteArrayInputStream(xsd)))
-    }
-    catch {
-      case ex: Exception => {
-        throw new RuntimeException("Unable to parse schema", ex)
-      }
-    }
-    try {
-      val xmlFile: Source = new StreamSource(new ByteArrayInputStream(xml))
-      val validator: Validator = schema.newValidator
-      validator.validate(xmlFile)
-    }
-    catch {
-      case e: Exception => {
-        e.printStackTrace
-        throw new RuntimeException("XML Verification failed", e)
-      }
-    }
-  }
-
   val factory = DocumentBuilderFactory.newInstance
   factory.setNamespaceAware(true)
   val documentBuilder = factory.newDocumentBuilder();
 
-  def parseXml(xml: String) : Document = {
+  def parseXml(xml: String): Document = {
     documentBuilder.parse(new ByteArrayInputStream(xml.getBytes));
   }
 
-  def parseXmlByteArray(xml: Array[Byte]) : Document = {
+  def parseXmlByteArray(xml: Array[Byte]): Document = {
     documentBuilder.parse(new ByteArrayInputStream(xml));
-  }
-
-
-  def verifySchematron(sch: Array[Byte], xml: Array[Byte], properties: Properties = null) {
-    val bSchematron: ByteArrayInputStream = new ByteArrayInputStream(sch)
-    val bXml: ByteArrayInputStream = new ByteArrayInputStream(xml)
-    val bOut: ByteArrayOutputStream = new ByteArrayOutputStream
-    verifySchematronStream(bSchematron, bXml, bOut, properties)
-    val result: Array[Byte] = bOut.toByteArray
-    val str: String = new String(result)
-    if (str.contains("failed")) {
-      throw new RuntimeException("Schematron verification failed")
-    }
-  }
-
-  /**
-   * Simple transformation method.
-   *
-   * @param xslStream    - The input stream that the xsl will be read from
-   * @param sourceStream - Input that the xml for verification will be read from.
-   * @param outputStream - The output stream that the result will be written into.
-   */
-  def simpleTransformStream(xslStream: InputStream, sourceStream: InputStream, outputStream: OutputStream, properties: Properties = null) {
-    try {
-      val transformer: Transformer = tFactory.newTransformer(new StreamSource(xslStream))
-      for (property <- properties.stringPropertyNames()) {
-        transformer.setParameter(property, properties.getProperty(property))
-      }
-      transformer.transform(new StreamSource(sourceStream), new StreamResult(outputStream))
-    }
-    catch {
-      case e: Exception => {
-        throw new RuntimeException(e)
-      }
-    }
-  }
-
-  /**
-   * Simple transformation method.
-   *
-   * @param xsl - The byte array that includes the xsl
-   * @param xml - The byte array that includes the xml
-   * @return result as byte []
-   */
-  def simpleTransform(xsl: Array[Byte], xml: Array[Byte], properties: Properties = null): Array[Byte] = {
-    val bXsl: ByteArrayInputStream = new ByteArrayInputStream(xsl)
-    val bXml: ByteArrayInputStream = new ByteArrayInputStream(xml)
-    val baos: ByteArrayOutputStream = new ByteArrayOutputStream
-    simpleTransformStream(bXsl, bXml, baos, properties)
-    baos.toByteArray
-  }
-
-  /**
-   * Performs schematron verification with the given schematrno file on the provided xml
-   *
-   * @param schematron
-   * @param xml
-   * @param result
-   */
-  def verifySchematronStream(schematron: InputStream, xml: InputStream, result: OutputStream, properties: Properties = null) {
-    val baos: ByteArrayOutputStream = new ByteArrayOutputStream
-    simpleTransformStream(resolver.rstrm("iso_schematron_xslt2/iso_dsdl_include.xsl"), schematron, baos)
-    var bais: ByteArrayInputStream = new ByteArrayInputStream(baos.toByteArray)
-    baos.reset
-    simpleTransformStream(resolver.rstrm("iso_schematron_xslt2/iso_abstract_expand.xsl"), bais, baos)
-    bais = new ByteArrayInputStream(baos.toByteArray)
-    baos.reset
-    simpleTransformStream(resolver.rstrm("iso_schematron_xslt2/iso_svrl_for_xslt2.xsl"), bais, baos)
-    bais = new ByteArrayInputStream(baos.toByteArray)
-    baos.reset
-    simpleTransformStream(bais, xml, result, properties)
   }
 
   private val xPath: XPath = {
     val xPath: XPath = XPathFactory.newInstance.newXPath
     xPath.setNamespaceContext(new NamespaceContext {
       def getNamespaceURI(prefix: String) = "*"
+
       def getPrefix(namespace: String) = null
+
       def getPrefixes(namespace: String) = null
     })
     xPath
@@ -527,16 +414,16 @@ class Utils {
   }
 
 
-  def createProperties(tuples: Tuple2[String,String]*) : Properties = {
+  def createProperties(tuples: Tuple2[String, String]*): Properties = {
     val properties = new Properties
-    for (tuple <- tuples){
+    for (tuple <- tuples) {
       properties.put(tuple._1, tuple._2);
     }
 
     properties
   }
-}
 
+}
 
 /**
  * Used to provide additional methods to Int.
@@ -563,11 +450,13 @@ case class MinderInt(in: Int) {
   def -->(out: Int) = onto(out)
 }
 
-case class invokeLater(vall: () => Any){
+case class invokeLater(vall: () => Any) {
   def onto(out: Int) = {
     val p = ParameterPipe(-1, out - 1);
     //whatever happens, return the value.
-    p.select = (a: Any) => {vall()};
+    p.select = (a: Any) => {
+      vall()
+    };
     p
   }
 

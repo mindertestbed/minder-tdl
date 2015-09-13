@@ -1,23 +1,16 @@
 package mtdl
 
-import java.io._
-import java.net.URL
 import java.util
-import java.util.zip.{ZipEntry, ZipInputStream}
-import javax.net.ssl.HttpsURLConnection
-
-import minderengine.{MinderUtils, Wrapper}
 
 import scala.collection.mutable
 import scala.collection.mutable.MutableList
-import java.util.{Properties, Date}
 
 /**
  *
  * @param variableWrapperMapping
- *   a map that contains the parameter wrapper names and their actual mappings.
- *   The map keys are parameter names, the values are:
- *   WrapperName|Version (separated by a |)
+ * a map that contains the parameter wrapper names and their actual mappings.
+ * The map keys are parameter names, the values are:
+ * WrapperName|Version (separated by a |)
  * @param run
  */
 abstract class MinderTdl(val variableWrapperMapping: scala.collection.mutable.Map[String, String], val run: java.lang.Boolean) extends Utils {
@@ -61,10 +54,14 @@ abstract class MinderTdl(val variableWrapperMapping: scala.collection.mutable.Ma
     throwable.printStackTrace()
   }
 
-  var exception: RuntimeException = null;
+  var exception: Throwable = null;
 
-  def THROWLATER(exception: RuntimeException): Unit = {
+  def THROWLATER(exception: Throwable): Unit = {
     this.exception = exception;
+  }
+
+  def THROWLATER(message:String, exception: Throwable): Unit = {
+    this.exception = new Exception(message, exception);
   }
 
   def THROWLATER(message: String): Unit = {
@@ -158,11 +155,12 @@ abstract class MinderTdl(val variableWrapperMapping: scala.collection.mutable.Ma
   /**
    * Added since version 0.2.3 in order to omit the unreadable rivet syntax for NULL rivets
    */
-  def runAsRivet(func : () => Unit): Unit ={
+  def runAsRivet(func: () => Unit): Unit = {
     NULLSLOT shall map(NULL onto 1 using { (any: Any) => {
       func()
       any
-    }})
+    }
+    })
   }
 
   /**
@@ -173,8 +171,8 @@ abstract class MinderTdl(val variableWrapperMapping: scala.collection.mutable.Ma
    * @param f
    * @return
    */
-  def waitForSignal(signalSlot: SignalSlot)(f : (Any) => Any): Unit ={
-    NULLSLOT shall(use(signalSlot))(mapping(1 onto 1 using f))
+  def waitForSignal(signalSlot: SignalSlot)(f: (Any) => Any): Unit = {
+    NULLSLOT shall (use(signalSlot))(mapping(1 onto 1 using f))
   }
 
   /**
@@ -182,10 +180,7 @@ abstract class MinderTdl(val variableWrapperMapping: scala.collection.mutable.Ma
    * @param f
    * @return
    */
-  def using(f : (Any) => Any): (Any => Any) = f
-
-
-  //we need to evaluate free variables by reflection.
+  def using(f: (Any) => Any): (Any => Any) = f
 }
 
 case class MinderStr(vall: String) {

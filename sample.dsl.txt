@@ -1,0 +1,16 @@
+if ($FILENAME contains """finance""") {
+	MOVE """finance"""
+	EMAIL """finance-team@somecompany.com"""
+}
+else if ($FILENAME endsWith """xlsx""") {
+	MOVE """spreadsheets"""
+}
+else if ($FILENAME startsWith """daily""") {
+	MOVE """daily-reports"""
+	EMAIL """report-team@somecompany.com"""
+}
+else {
+	MOVE """add sfsdfg
+	asdfasd;lkasfj
+	"vsdf sfbfgb i"""
+}
