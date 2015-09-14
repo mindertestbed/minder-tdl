@@ -52,7 +52,7 @@ class TestTdlCompiler extends Specification {
     }
 
     "compile and recompile a valid tdl file" in {
-      val minderClass = TdlCompiler.compileTdl("myildiz83@gmail.com", new File("sampletdl/SampleTestCase11.tdl"))
+      val minderClass = TdlCompiler.compileTdl("myildiz83@gmail.com", new File("initialdata/SampleTestCase11.tdl"))
 
       for (c <- minderClass.getConstructors) {
         println(c)
@@ -74,7 +74,7 @@ class TestTdlCompiler extends Specification {
     }
 
     "compile and recompile a valid tdl file containing NULL SLOTS" in {
-      val minderClass = TdlCompiler.compileTdl("myildiz83@gmail.com", new File("sampletdl/as4_23.tdl"))
+      val minderClass = TdlCompiler.compileTdl("myildiz83@gmail.com", new File("initialdata/as4_23.tdl"))
 
       for (c <- minderClass.getConstructors) {
         println(c)
@@ -104,7 +104,7 @@ class TestTdlCompiler extends Specification {
 
   /*
     "recompile a valid tdl file" in {
-      val minderClass = TdlCompiler.compileTdl("myildiz83@gmail.com", new File("sampletdl/SampleTestCase12.tdl"))
+      val minderClass = TdlCompiler.compileTdl("myildiz83@gmail.com", new File("initialdata/SampleTestCase12.tdl"))
       val minder = createInstance(minderClass, true, "$wrapper0" -> "B", "$wrapper1" -> "C")
       minder.RivetDefs.foreach(
         rivet => {
@@ -115,8 +115,8 @@ class TestTdlCompiler extends Specification {
     }
 
     "compile a valid tdl file that references another" in {
-      TdlCompiler.compileTdl("melis@gmail.com", new File("sampletdl/SampleTestCase12.tdl"))
-      val minderClass = TdlCompiler.compileTdl("melis@gmail.com", new File("sampletdl/SampleTestCase2.tdl"))
+      TdlCompiler.compileTdl("melis@gmail.com", new File("initialdata/SampleTestCase12.tdl"))
+      val minderClass = TdlCompiler.compileTdl("melis@gmail.com", new File("initialdata/SampleTestCase2.tdl"))
       val minder = createInstance(minderClass, true, "$wrapper0" -> "B", "$wrapper1" -> "C")
 
       minder.RivetDefs.foreach(
@@ -141,11 +141,11 @@ class TestTdlCompiler extends Specification {
 
 
     "A valid test case" should {
-      var cls = TdlCompiler.compileTdl("radu@romanya.com", new File("sampletdl/SampleTestCase12.tdl"));
+      var cls = TdlCompiler.compileTdl("radu@romanya.com", new File("initialdata/SampleTestCase12.tdl"));
 
       val tc1: mtdl.MinderTdl = createInstance(cls, true, "$wrapper0" -> "B", "$wrapper1" -> "C")
 
-      cls = TdlCompiler.compileTdl("radu@romanya.com", new File("sampletdl/SampleTestCase2.tdl"));
+      cls = TdlCompiler.compileTdl("radu@romanya.com", new File("initialdata/SampleTestCase2.tdl"));
       val tc2: mtdl.MinderTdl = createInstance(cls, true, "$wrapper0" -> "B", "$wrapper1" -> "C");
 
       "keep the list of its rivets" in {

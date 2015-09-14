@@ -94,6 +94,11 @@ public class XmlContentVerifier {
     }
   }
 
+
+  public static void verifyXsd(String url, byte []bytes){
+    verifyXsd(url, new ByteArrayInputStream(bytes));
+  }
+
   public static void verifyXsd(String url, InputStream inputStream) {
     javax.xml.validation.Schema schema = null;
     try {
@@ -196,6 +201,19 @@ public class XmlContentVerifier {
   public static void verifySchematron(Schema schematron, byte[] xml, Properties properties) {
     verifySchematron(schematron, new ByteArrayInputStream(xml), properties);
   }
+
+  public static void verifySchematron(String url, byte[] xml) {
+    verifySchematron(url, xml, null);
+  }
+
+  public static void verifySchematron(String url, byte[] xml, Properties properties) {
+    try {
+      verifySchematron(new URL(url), xml, properties);
+    } catch (Exception ex) {
+      throw ExceptionUtils.asRuntimeException(ex);
+    }
+  }
+
 
   /**
    * Performs schematron verification with the given schematron file on the provided xml
