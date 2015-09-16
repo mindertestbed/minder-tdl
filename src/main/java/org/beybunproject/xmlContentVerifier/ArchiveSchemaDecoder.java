@@ -1,5 +1,7 @@
 package org.beybunproject.xmlContentVerifier;
 
+import org.beybunproject.xmlContentVerifier.utils.Utils;
+
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.file.FileSystems;
@@ -21,10 +23,10 @@ public abstract class ArchiveSchemaDecoder extends HashMap<String, byte[]> imple
 */
     String actualPath;
     if (baseURI == null)
-      actualPath = normalizePath(systemId);
+      actualPath = Utils.normalizePath(systemId);
     else {
       baseURI = baseURI.substring(0, baseURI.lastIndexOf('/'));
-      actualPath = normalizePath(baseURI + "/" + systemId);
+      actualPath = Utils.normalizePath(baseURI + "/" + systemId);
     }
 /*
     System.out.println("ACTUAL PATH: " + actualPath);
@@ -42,16 +44,12 @@ public abstract class ArchiveSchemaDecoder extends HashMap<String, byte[]> imple
     readEntries(inputStream);
   }
 
-  public static String normalizePath(String s) {
-    return FileSystems.getDefault().getPath(s).normalize().toString();
-  }
-
   protected void readEntries(InputStream inputStream) {
     this.start(inputStream);
     ArchiveEntry entry;
     while ((entry = this.getNextEntry()) != null) {
       if (entry.isFile) {
-        this.put(normalizePath(MINDER_DUMMY_PROTOCOL + entry.name), entry.bytes);
+        this.put(Utils.normalizePath(Utils.ARCH_URI + entry.name), entry.bytes);
       }
     }
   }

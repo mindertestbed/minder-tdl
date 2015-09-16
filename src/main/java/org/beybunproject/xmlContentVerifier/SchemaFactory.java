@@ -12,7 +12,7 @@ import java.net.URL;
 public class SchemaFactory {
   public static Schema schemaFromByteArray(String name, byte[] source, ArchiveType type) {
     SchemaResourceResolver archiveResourceResolver = new SchemaResourceResolver(source, type);
-    Schema schema = new Schema(archiveResourceResolver, SchemaDecoder.MINDER_DUMMY_PROTOCOL + name);
+    Schema schema = new Schema(archiveResourceResolver, Utils.ARCH_URI + name);
     return schema;
   }
 
@@ -33,7 +33,7 @@ public class SchemaFactory {
         final URL urlO = new URL(url);
         byte[] bytes = Utils.readStream(urlO.openStream());
         SchemaResourceResolver schemaResourceResolver = new SchemaResourceResolver(bytes, archiveType);
-        return new Schema(schemaResourceResolver, SchemaDecoder.MINDER_DUMMY_PROTOCOL + name);
+        return new Schema(schemaResourceResolver, Utils.ARCH_URI + name);
       }
     } catch (Exception ex) {
       throw ExceptionUtils.asRuntimeException(ex);

@@ -286,7 +286,7 @@ public class XmlContentVerifier {
         for (String property : properties.stringPropertyNames()) {
           transformer.setParameter(property, properties.getProperty(property));
         }
-      transformer.transform(new StreamSource(schematron.getInputStream(), "minbase://schematron/deep/deeper/includer1.sch"), new StreamResult(outputStream));
+      transformer.transform(new StreamSource(schematron.getInputStream(), schematron.getSystemId()), new StreamResult(outputStream));
     } catch (Exception ex) {
       throw ExceptionUtils.asRuntimeException(ex);
     }

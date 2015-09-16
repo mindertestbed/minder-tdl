@@ -7,8 +7,6 @@ import java.io.InputStream;
  * Date: 09/09/15.
  */
 public interface SchemaDecoder {
-  public static final String MINDER_DUMMY_PROTOCOL = "minbase://";
-
   /**
    * @see org.w3c.dom.ls.LSResourceResolver#resolveResource(String, String, String, String, String)
    * @param type
