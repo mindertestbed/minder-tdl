@@ -95,7 +95,7 @@ public class XmlContentVerifier {
   }
 
 
-  public static void verifyXsd(String url, byte []bytes){
+  public static void verifyXsd(String url, byte[] bytes) {
     verifyXsd(url, new ByteArrayInputStream(bytes));
   }
 
@@ -151,6 +151,12 @@ public class XmlContentVerifier {
     verifySchematron(bSchematron, bXml, properties);
   }
 
+  public static String schematronReport(byte[] sch, byte[] xml, Properties properties) {
+    ByteArrayInputStream bSchematron = new ByteArrayInputStream(sch);
+    ByteArrayInputStream bXml = new ByteArrayInputStream(xml);
+    return schematronReport(bSchematron, bXml, properties);
+  }
+
   public static void verifySchematron(byte[] sch, InputStream xml, Properties properties) {
     ByteArrayInputStream bSchematron = new ByteArrayInputStream(sch);
     verifySchematron(bSchematron, xml, properties);
@@ -159,6 +165,12 @@ public class XmlContentVerifier {
   public static void verifySchematron(URL schematronUrl, byte[] xml, Properties properties) {
     ByteArrayInputStream bXml = new ByteArrayInputStream(xml);
     verifySchematron(schematronUrl, bXml, properties);
+  }
+
+
+  public static String schematronReport(URL schematronUrl, byte[] xml, Properties properties) {
+    ByteArrayInputStream bXml = new ByteArrayInputStream(xml);
+    return schematronReport(schematronUrl, bXml, properties);
   }
 
   /**
@@ -182,6 +194,21 @@ public class XmlContentVerifier {
     checkSchematronResult(baos.toString());
   }
 
+  public static String schematronReport(URL url, InputStream xml, Properties properties) {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    urlTransform(SchematronClassResolver.rstrm("iso_dsdl_include.xsl"), url, baos, properties);
+    ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+    baos.reset();
+    simpleTransformStream(SchematronClassResolver.rstrm("iso_abstract_expand.xsl"), bais, baos, properties);
+    bais = new ByteArrayInputStream(baos.toByteArray());
+    baos.reset();
+    simpleTransformStream(SchematronClassResolver.rstrm("iso_svrl_for_xslt2.xsl"), bais, baos, properties);
+    bais = new ByteArrayInputStream(baos.toByteArray());
+    baos.reset();
+    simpleTransformStream(bais, xml, baos, properties);
+    return baos.toString();
+  }
+
   /**
    * Performs schematron verification with the given schematron file on the provided xml
    *
@@ -200,6 +227,16 @@ public class XmlContentVerifier {
    */
   public static void verifySchematron(Schema schematron, byte[] xml, Properties properties) {
     verifySchematron(schematron, new ByteArrayInputStream(xml), properties);
+  }
+
+  /**
+   * Performs schematron verification with the given schematron file on the provided xml
+   *
+   * @param schematron
+   * @param xml
+   */
+  public static String schematronReport(Schema schematron, byte[] xml, Properties properties) {
+    return schematronReport(schematron, new ByteArrayInputStream(xml), properties);
   }
 
   public static void verifySchematron(String url, byte[] xml) {
@@ -236,6 +273,21 @@ public class XmlContentVerifier {
     checkSchematronResult(baos.toString());
   }
 
+  public static String schematronReport(Schema schematron, InputStream xml, Properties properties) {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    schemaTransform(SchematronClassResolver.rstrm("iso_dsdl_include.xsl"), schematron, baos, properties);
+    ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+    baos.reset();
+    simpleTransformStream(SchematronClassResolver.rstrm("iso_abstract_expand.xsl"), bais, baos, properties);
+    bais = new ByteArrayInputStream(baos.toByteArray());
+    baos.reset();
+    simpleTransformStream(SchematronClassResolver.rstrm("iso_svrl_for_xslt2.xsl"), bais, baos, properties);
+    bais = new ByteArrayInputStream(baos.toByteArray());
+    baos.reset();
+    simpleTransformStream(bais, xml, baos, properties);
+    return baos.toString();
+  }
+
   /**
    * Performs schematron verification with the given schematrno file on the provided xml
    *
@@ -255,6 +307,21 @@ public class XmlContentVerifier {
     baos.reset();
     simpleTransformStream(bais, xml, baos, properties);
     checkSchematronResult(baos.toString());
+  }
+
+  public static String schematronReport(InputStream schematron, InputStream xml, Properties properties) {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    simpleTransformStream(SchematronClassResolver.rstrm("iso_dsdl_include.xsl"), schematron, baos, properties);
+    ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+    baos.reset();
+    simpleTransformStream(SchematronClassResolver.rstrm("iso_abstract_expand.xsl"), bais, baos, properties);
+    bais = new ByteArrayInputStream(baos.toByteArray());
+    baos.reset();
+    simpleTransformStream(SchematronClassResolver.rstrm("iso_svrl_for_xslt2.xsl"), bais, baos, properties);
+    bais = new ByteArrayInputStream(baos.toByteArray());
+    baos.reset();
+    simpleTransformStream(bais, xml, baos, properties);
+    return baos.toString();
   }
 
 
