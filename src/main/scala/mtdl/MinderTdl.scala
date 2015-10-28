@@ -181,6 +181,7 @@ abstract class MinderTdl(val variableWrapperMapping: scala.collection.mutable.Ma
    * @return
    */
   def using(f: (Any) => Any): (Any => Any) = f
+
 }
 
 case class MinderStr(vall: String) {

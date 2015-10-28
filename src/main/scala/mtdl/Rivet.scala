@@ -1,5 +1,7 @@
 package mtdl
 
+import java.util.concurrent.atomic.AtomicInteger
+
 import scala.collection.mutable
 
 /**
@@ -100,4 +102,33 @@ class Rivet(val slot: SlotImpl, pipeListList: List[List[ParameterPipe]]) {
   }
 
   override def hashCode(): Int = slot.signature.hashCode
+
+
+  /**
+   * Fields added for GITB compliance
+   * @param tplStepType
+   */
+
+  var tplStepType:TPLStepType  = TPLStepType.TEST_STEP;
+  var tplStepDescription:String = "";
+
+  //TODO: How to reset?
+  var tplStepId: Long = IdProvider.getNext();
+
+  def setGITBMetadata(tplStepType: TPLStepType, tplStepDescription: String): Unit ={
+    this.tplStepType = tplStepType;
+    this.tplStepDescription = tplStepDescription;
+  }
+}
+
+
+object IdProvider {
+  var id : AtomicInteger = new AtomicInteger(0);
+
+  def getNext(): Int ={
+    id.getAndIncrement()
+  }
+
+  //TODO: Where to reset?
+  def reset() = id.set(0)
 }
