@@ -199,7 +199,7 @@ case class MinderStr(vall: String) {
   def of(wrapperId: String)(implicit tdl: MinderTdl): WrapperFunction = {
     tdl.wrapperDefs += wrapperId
 
-    return wrapperfunction(wrapperid, vall)
+    return WrapperFunction(wrapperId, vall)
   }
 
   def %(subRepo: String): String = {
@@ -260,6 +260,6 @@ case class MinderStr(vall: String) {
 }
 
 object MinderTdl {
-  val NULL_WRAPPER_NAME = "NULLWRAPPER"
+  val NULL_WRAPPER_NAME: String = "NULLWRAPPER"
   val NULL_SLOT_NAME = "NULLSLOT"
 }
