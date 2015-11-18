@@ -6,39 +6,6 @@ import org.specs2.mutable._
  */
 class TestTdlCompiler extends Specification {
 
-  // query from db with wrapper and id if does not exist
-  // throw new IllegalArgumentException("No such signal or slot <" + wrapper +
-  // "." + id + ">");
-
-  class Provider extends ISignalSlotInfoProvider {
-
-    val signals = List("payloadSubmitted", "sendAS4Message", "sendAS4Receipt", "deliverPayload");
-
-    //val slots = List("configurePMode", "submitPayload", "receiveAS4Message", "receiveAS4Receipt");
-
-    override def getSignalSlot(wrapperId: String, signature: String) = {
-
-      println("SIGNATURE " + signature)
-
-      var isSignal = false;
-      signals foreach {
-        str => {
-          if (signature startsWith str)
-            isSignal = true
-          println("\n" + str)
-        }
-      }
-
-      if (isSignal)
-        SignalImpl(wrapperId, signature)
-      else if (signature.contains("signal")) SignalImpl(wrapperId, signature)
-      else SlotImpl(wrapperId, signature)
-    }
-  }
-
-
-  SignalSlotInfoProvider.setSignalSlotInfoProvider(new Provider)
-
   sequential
 
   "" should { "" in {1 must_== 1}}

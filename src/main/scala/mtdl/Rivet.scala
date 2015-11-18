@@ -7,7 +7,18 @@ import scala.collection.mutable
 /**
  * Created by yerlibilgin on 05/12/14.
  */
-class Rivet(val slot: SlotImpl, pipeListList: List[List[ParameterPipe]]) {
+class Rivet(val wrapperFunction: WrapperFunction, pipeListList: List[List[ParameterPipe]])(implicit tdl: MinderTdl) {
+  /**
+    * Fields added for GITB compliance
+    * tplStepType
+    */
+
+  var tplStepType:TPLStepType  = TPLStepType.TEST_STEP;
+  var tplStepDescription:String = "";
+
+  //TODO: How to reset?
+  var tplStepId: Long = tdl.getNextRivetId()
+
   /**
    * Hold a flat list of all parameter pipes.
    */
@@ -29,17 +40,17 @@ class Rivet(val slot: SlotImpl, pipeListList: List[List[ParameterPipe]]) {
 
 
   println("Pipes size " + pipes.size);
-  println("Slot name " + slot.wrapperId + "." + slot.signature)
-  println("Slot params size " + (slot.params == null));
+  println("Slot name " + wrapperFunction.wrapperId + "." + wrapperFunction.signature)
+  println("Slot params size " + (wrapperFunction.params == null));
 
-  //if the pipe list is empty, then the slot should also be zero-param
-  if (pipes.isEmpty && !slot.params.isEmpty)
-    throw new IllegalArgumentException("The slot requires arguments but none is supplied")
+  //if the pipe list is empty, then the wrapperFunction should also be zero-param
+  if (pipes.isEmpty && !wrapperFunction.params.isEmpty)
+    throw new IllegalArgumentException("The wrapperFunction requires arguments but none is supplied")
 
 
-  //the length of the parameters has to be the same as the number of slots if the signals and slots are not zero param.
-  if (slot.params.size != 1000 && pipes.size != slot.params.size && pipes.size != 1 && (pipes(0).in != -1 || pipes(0).out != -1))
-    throw new IllegalArgumentException("The number of slot arguments has to match the number of parameter pipes")
+  //the length of the parameters has to be the same as the number of wrapperFunctions if the signals and wrapperFunctions are not zero param.
+  if (wrapperFunction.params.size != 1000 && pipes.size != wrapperFunction.params.size && pipes.size != 1 && (pipes(0).in != -1 || pipes(0).out != -1))
+    throw new IllegalArgumentException("The number of wrapperFunction arguments has to match the number of parameter pipes")
 
   pipeListList.foreach(f = pipeList => {
     //ensure the list is not empty and take the first key
@@ -60,7 +71,7 @@ class Rivet(val slot: SlotImpl, pipeListList: List[List[ParameterPipe]]) {
   })
 
   override def toString() = {
-    "Rivet for " + slot.wrapperId + "." + slot.signature
+    "Rivet for " + wrapperFunction.wrapperId + "." + wrapperFunction.signature
   }
 
   def describe() = {
@@ -88,47 +99,23 @@ class Rivet(val slot: SlotImpl, pipeListList: List[List[ParameterPipe]]) {
   override def equals(other: Any): Boolean = {
     if (other.isInstanceOf[Rivet]) {
       val rvt = other.asInstanceOf[Rivet];
-      if (slot == null) {
-        rvt.slot == null
+      if (wrapperFunction == null) {
+        rvt.wrapperFunction == null
       } else {
-        if (slot != rvt.slot)
+        if (wrapperFunction != rvt.wrapperFunction)
           false
         else {
-          slot.signature == rvt.slot.signature && this.describe() == rvt.describe()
+          wrapperFunction.signature == rvt.wrapperFunction.signature && this.describe() == rvt.describe()
         }
       }
     } else
       false
   }
 
-  override def hashCode(): Int = slot.signature.hashCode
-
-
-  /**
-   * Fields added for GITB compliance
-   * @param tplStepType
-   */
-
-  var tplStepType:TPLStepType  = TPLStepType.TEST_STEP;
-  var tplStepDescription:String = "";
-
-  //TODO: How to reset?
-  var tplStepId: Long = IdProvider.getNext();
+  override def hashCode(): Int = wrapperFunction.signature.hashCode
 
   def setGITBMetadata(tplStepType: TPLStepType, tplStepDescription: String): Unit ={
     this.tplStepType = tplStepType;
     this.tplStepDescription = tplStepDescription;
   }
-}
-
-
-object IdProvider {
-  var id : AtomicInteger = new AtomicInteger(0);
-
-  def getNext(): Int ={
-    id.getAndIncrement()
-  }
-
-  //TODO: Where to reset?
-  def reset() = id.set(0)
 }

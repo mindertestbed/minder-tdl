@@ -43,7 +43,7 @@ object TestTdlCompiler {//extends Specification {
   }
 
 
-  SignalSlotInfoProvider.setSignalSlotInfoProvider(new Provider)
+  WrapperFunctionInfoProvider.setSignalSlotInfoProvider(new Provider)
 
   sequential
 

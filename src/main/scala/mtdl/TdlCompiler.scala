@@ -74,7 +74,7 @@ object TdlCompiler {
           }
           pw.println()
 
-          pw.println("class " + className + "(override val variableWrapperMapping: scala.collection.mutable.Map[String,String], run: Boolean) extends MinderTdl(variableWrapperMapping, run){")
+          pw.println("class " + className + "(run: Boolean) extends MinderTdl(run){")
           pw.println("ThisPackage = \"" + packageName + "\"")
           pw.println("AssetPath = \"" + assetPath + "\"")
           pw.println("Version = \"" + version + "\"")
