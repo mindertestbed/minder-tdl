@@ -1,30 +1,19 @@
 package mtdl
 
-import java.io._
-import java.net.URL
 import java.util
-import java.util.zip.{ZipEntry, ZipInputStream}
-import javax.net.ssl.HttpsURLConnection
-
-import minderengine.{MinderUtils, Wrapper}
+import java.util.concurrent.atomic.AtomicInteger
 
 import scala.collection.mutable
 import scala.collection.mutable.MutableList
-import java.util.{Properties, Date}
 
 /**
- *
- * @param variableWrapperMapping
- *   a map that contains the parameter wrapper names and their actual mappings.
- *   The map keys are parameter names, the values are:
- *   WrapperName|Version (separated by a |)
- * @param run
- */
-abstract class MinderTdl(val variableWrapperMapping: scala.collection.mutable.Map[String, String], val run: java.lang.Boolean) extends Utils {
-  //https://joinup.ec.europa.eu/system/files/project/94/f7/9e/ADMS_XML_Schema_v1.01.zip
-
-  val JOINUP_CORE = "https://joinup.ec.europa.eu/site/core_location/"
-
+  *
+  * a map that contains the parameter wrapper names and their actual mappings.
+  * The map keys are parameter names, the values are:
+  * WrapperName|Version (separated by a |)
+  * @param run
+  */
+abstract class MinderTdl(val run: java.lang.Boolean) extends Utils {
   implicit val tdl = this;
 
   implicit def str2MinderStr(str: String) = MinderStr(str)
@@ -32,27 +21,6 @@ abstract class MinderTdl(val variableWrapperMapping: scala.collection.mutable.Ma
   implicit def int2MinderInt(int: Int) = MinderInt(int)
 
   implicit def anyRef2MinderAnyRef(anyRef: AnyRef) = MinderAny(anyRef)
-
-  val param1: Int = 1
-  val param2: Int = 2
-  val param3: Int = 3
-  val param4: Int = 4
-  val param5: Int = 5
-  val param6: Int = 6
-  val param7: Int = 7
-  val param8: Int = 8
-  val param9: Int = 9
-  val param10: Int = 10
-  val param11: Int = 11
-  val param12: Int = 12
-  val param13: Int = 13
-  val param14: Int = 14
-  val param15: Int = 15
-  val param16: Int = 16
-  val param17: Int = 17
-  val param18: Int = 18
-  val param19: Int = 19
-  val param20: Int = 20
 
   val automatically = List[ParameterPipe]()
 
@@ -70,6 +38,11 @@ abstract class MinderTdl(val variableWrapperMapping: scala.collection.mutable.Ma
     println(any);
     throwable.printStackTrace()
   }
+  var warn: Any => Unit = (any: Any) => println(any)
+  var warnThrowable: (Any, Throwable) => Unit = (any: Any, throwable: Throwable) => {
+    println(any);
+    throwable.printStackTrace()
+  }
   var info: Any => Unit = (any: Any) => println(any)
   var infoThrowable: (Any, Throwable) => Unit = (any: Any, throwable: Throwable) => {
     println(any);
@@ -81,10 +54,18 @@ abstract class MinderTdl(val variableWrapperMapping: scala.collection.mutable.Ma
     throwable.printStackTrace()
   }
 
-  var exception: RuntimeException = null;
+  var exception: Throwable = null;
 
-  def THROWLATER(exception: RuntimeException): Unit = {
+  def THROWLATER(exception: Throwable): Unit = {
     this.exception = exception;
+  }
+
+  def THROWLATER(message: String, exception: Throwable): Unit = {
+    this.exception = new Exception(message, exception);
+  }
+
+  def THROWLATER(message: String): Unit = {
+    this.exception = new RuntimeException(message);
   }
 
   def DEBUG(any: Any): Unit = {
@@ -93,6 +74,14 @@ abstract class MinderTdl(val variableWrapperMapping: scala.collection.mutable.Ma
 
   def DEBUG(any: Any, throwable: Throwable): Unit = {
     debug(any, throwable)
+  }
+
+  def WARN(any: Any): Unit = {
+    warn(any)
+  }
+
+  def WARN(any: Any, throwable: Throwable): Unit = {
+    warn(any, throwable)
   }
 
   def INFO(any: Any): Unit = {
@@ -111,10 +100,10 @@ abstract class MinderTdl(val variableWrapperMapping: scala.collection.mutable.Ma
     error(any, throwable)
   }
 
-  def use(signal: SignalSlot)(list: List[ParameterPipe]) = {
-    if (run && !(signal.isInstanceOf[SignalImpl])) {
-      throw new IllegalArgumentException(signal.signature + " is not a signal.")
-    }
+  def use(signal: WrapperFunction)(list: List[ParameterPipe]) = {
+    //if (run && !(signal.isInstanceOf[SignalImpl])) {
+    //  throw new IllegalArgumentException(signal.signature + " is not a signal.")
+    //}
 
     //create an empty mutable list that we can populate the parameters
     val ml: mutable.MutableList[ParameterPipe] = MutableList[ParameterPipe]()
@@ -164,56 +153,53 @@ abstract class MinderTdl(val variableWrapperMapping: scala.collection.mutable.Ma
   }
 
   /**
-   * Added since version 0.2.3 in order to omit the unreadable rivet syntax for NULL rivets
-   */
-  def runAsRivet(func : () => Unit): Unit ={
+    * Added since version 0.2.3 in order to omit the unreadable rivet syntax for NULL rivets
+    */
+  def runAsRivet(func: () => Unit): Unit = {
     NULLSLOT shall map(NULL onto 1 using { (any: Any) => {
       func()
       any
-    }})
+    }
+    })
   }
 
   /**
-   * Added since version 0.2.3 in order to omit unreadable rivet syntax where
-   * only one signal is used and forwarded to NULLSLOT.
-   *
-   * @param signalSlot
-   * @param f
-   * @return
-   */
-  def waitForSignal(signalSlot: SignalSlot)(f : (Any) => Any): Unit ={
-    NULLSLOT shall(use(signalSlot))(mapping(1 onto 1 using f))
+    * Added since version 0.2.3 in order to omit unreadable rivet syntax where
+    * only one signal is used and forwarded to NULLSLOT.
+    *
+    * @param signalSlot
+    * @param f
+    * @return
+    */
+  def waitForSignal(signalSlot: WrapperFunction)(f: (Any) => Any): Unit = {
+    NULLSLOT shall (use(signalSlot)) (mapping(1 onto 1 using f))
   }
 
   /**
-   * A simply forwarding method for increasing readability.
-   * @param f
-   * @return
-   */
-  def using(f : (Any) => Any): (Any => Any) = f
+    * A simply forwarding method for increasing readability.
+    * @param f
+    * @return
+    */
+  def using(f: (Any) => Any): (Any => Any) = f
 
+
+  /**
+    * Section added for initializing and auto incrementing the test case IDS.
+    */
+  var rivetIdGenerator: AtomicInteger = new AtomicInteger(0);
+
+  def getNextRivetId(): Int = {
+    rivetIdGenerator.getAndIncrement()
+  }
 }
 
 case class MinderStr(vall: String) {
   val cache = new java.util.HashMap[String, (AnyRef, java.lang.reflect.Field)]
 
-  def of(wrapperId: String)(implicit tdl: MinderTdl): SignalSlot = {
-    if (tdl.run == false) {
-      //description mode
-      //we need to use .shall function of SLotImpl to get the rivet.
-      //so always return slotImpl.
+  def of(wrapperId: String)(implicit tdl: MinderTdl): WrapperFunction = {
+    tdl.wrapperDefs += wrapperId
 
-      return SlotImpl(wrapperId, vall)
-    } else {
-      //if the wrapper id is a variable, then we have to find the matching actual wrapper from the wrapper map
-      val searchKey = if (wrapperId.startsWith("$")) tdl.variableWrapperMapping(wrapperId) else wrapperId
-      val signalOrSlot = SignalSlotInfoProvider.getSignalSlot(searchKey, vall)
-
-      //now add the wrapper to the actual wrapper list
-      tdl.wrapperDefs += signalOrSlot.wrapperId
-
-      signalOrSlot
-    }
+    return WrapperFunction(wrapperId, vall)
   }
 
   def %(subRepo: String): String = {
@@ -245,7 +231,7 @@ case class MinderStr(vall: String) {
       field.get(refObj).asInstanceOf[Rivet]
     } else {
       val clazz: Class[_] = this.getClass.getClassLoader.loadClass(actualClassName)
-      refObj = clazz.getConstructors()(0).newInstance(tdl.variableWrapperMapping, tdl.run).asInstanceOf[AnyRef]
+      refObj = clazz.getConstructors()(0).newInstance(tdl.run).asInstanceOf[AnyRef]
       field = clazz.getDeclaredField(vall);
       field setAccessible true
       cache.put(actualClassName, (refObj, field));
@@ -271,4 +257,9 @@ case class MinderStr(vall: String) {
       tdl.download(repo + "/" + vall)
     }
   }
+}
+
+object MinderTdl {
+  val NULL_WRAPPER_NAME: String = "NULLWRAPPER"
+  val NULL_SLOT_NAME = "NULLSLOT"
 }

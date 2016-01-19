@@ -1,0 +1,48 @@
+[[syntax trees at end of                     typer]] // TestCaseSample1.scala
+[21]package [21]minderTdl._1._1 {
+  [25:33]import mtdl._;
+  [40:48]import minderTdl._1._;
+  [70]class TestCaseSample1 extends [85][190]mtdl.MinderTdl {
+    [99]<paramaccessor> private[this] val variableWrapperMapping: [99]scala.collection.mutable.Map[String,String] = _;
+    [99]override <stable> <accessor> <paramaccessor> def variableWrapperMapping: [99]scala.collection.mutable.Map[String,String] = [99][99]TestCaseSample1.this.variableWrapperMapping;
+    [168]<paramaccessor> private[this] val run: [168]Boolean = _;
+    [190]def <init>([99]variableWrapperMapping: [148]<type: [148][148]scala.collection.mutable.Map[[152]<type: [152][152]scala.this.Predef.String>, [159]<type: [159][159]scala.this.Predef.String>]>, [168]run: [173]<type: [173]scala.Boolean>): [85]minderTdl._1._1.TestCaseSample1 = [190]{
+      [190][190][190]TestCaseSample1.super.<init>([200]variableWrapperMapping, [224][224][224]scala.this.Predef.boolean2Boolean([224]run));
+      [85]()
+    };
+    [243][231][231]TestCaseSample1.this.ThisPackage_=([245]"minderTdl._1._1");
+    [273][263][263]TestCaseSample1.this.AssetPath_=([275]"_1");
+    [288][280][280]TestCaseSample1.this.Version_=([290]"0.0.1");
+    [299:303]private[this] var bookXsd: [303]Array[Byte] = [325]null;
+    [303]<accessor> def bookXsd: [303]Array[Byte] = [303][303]TestCaseSample1.this.bookXsd;
+    [303]<accessor> def bookXsd_=([70]x$1: [70]Array[Byte]): [303]Unit = [303][303][303]TestCaseSample1.this.bookXsd = [303]x$1;
+    [342][332][332]TestCaseSample1.this.runAsRivet([345](() => [347]{
+      [351:355]val assetName: [355]String = [379][367][367]TestCaseSample1.this.getParameter([380]"xsdName", [367][367]TestCaseSample1.this.getParameter$default$2);
+      [401][393][393]TestCaseSample1.this.bookXsd_=([423][423][411][403][403]TestCaseSample1.this.getAsset([412]assetName).getValue())
+    }));
+    [445:450][445:450][445:450][436]TestCaseSample1.this.NULLSLOT.shall([454][451][451]TestCaseSample1.this.map([460:472][460:472][460:464][460:464][455]TestCaseSample1.this.NULL.onto([465]1).using([473]{
+      [473](([473]any: [473]Any) => [473][473][473]TestCaseSample1.this.xmlLogger([473]any))
+    })))([445][445]TestCaseSample1.this.tdl);
+    [489:547]private[this] val rivet1: [542]mtdl.Rivet = [526:547][526:547][526:547][526:528][526:528][526:528][501][501][501]TestCaseSample1.this.str2MinderStr([501]"generateBooksData(int)").of([529]"$initiator")([526][526]TestCaseSample1.this.tdl).shall([555][552][552]TestCaseSample1.this.map([641:645][641:645][556][556][556]TestCaseSample1.this.anyRef2MinderAnyRef([556]{
+  [567][560][560]scala.this.Predef.println([568]"Hello Guys, I am mapping\n");
+  [600]"\n  hede\n  hodo\"\n  kemp komp\n  \n  "
+}).onto([646]1)))([542][542]TestCaseSample1.this.tdl);
+    [542]<stable> <accessor> def rivet1: [542]mtdl.Rivet = [542][542]TestCaseSample1.this.rivet1;
+    [863:867]private[this] var v1: [867]Int = [872]6;
+    [867]<accessor> def v1: [867]Int = [867][867]TestCaseSample1.this.v1;
+    [867]<accessor> def v1_=([70]x$1: [70]Int): [867]Unit = [867][867][867]TestCaseSample1.this.v1 = [867]x$1;
+    [875:931]private[this] val rivet2: [926]mtdl.Rivet = [910:931][910:931][910:931][910:912][910:912][910:912][888][888][888]TestCaseSample1.this.str2MinderStr([888]"generateXML(byte[])").of([913]"$generator")([910][910]TestCaseSample1.this.tdl).shall([985][939][936][936]TestCaseSample1.this.use([969:971][969:971][969:971][940][940][940]TestCaseSample1.this.str2MinderStr([940]"initialDataCreated(byte[])").of([972]"$initiator")([969][969]TestCaseSample1.this.tdl))([994][986][986]TestCaseSample1.this.mapping([998:1002][998:1002][995][995][995]TestCaseSample1.this.int2MinderInt([995][995]TestCaseSample1.this.v1).onto([1003]1))))([926][926]TestCaseSample1.this.tdl);
+    [926]<stable> <accessor> def rivet2: [926]mtdl.Rivet = [926][926]TestCaseSample1.this.rivet2;
+    [1349:1420]private[this] val rivet3: [1415]mtdl.Rivet = [1389:1420][1389:1420][1389:1420][1389:1391][1389:1391][1389:1391][1362][1362][1362]TestCaseSample1.this.str2MinderStr([1362]"verifyXsd(byte[],byte[])").of([1392]"xml-content-verifier")([1389][1389]TestCaseSample1.this.tdl).shall([1467][1428][1425][1425]TestCaseSample1.this.use([1451:1453][1451:1453][1451:1453][1429][1429][1429]TestCaseSample1.this.str2MinderStr([1429]"xmlProduced(byte[])").of([1454]"$generator")([1451][1451]TestCaseSample1.this.tdl))([1551][1544][1544]TestCaseSample1.this.mapping([1554:1566][1554:1566][1554:1558][1554:1558][1552][1552][1552]TestCaseSample1.this.int2MinderInt([1552]1).onto([1559]2).using([1567]{
+      [1567](([1567]any: [1567]Any) => [1567][1567][1567]TestCaseSample1.this.xmlLogger([1567]any))
+    }))), [1658][1655][1655]TestCaseSample1.this.map([1667:1671][1667:1671][1659][1659][1659]TestCaseSample1.this.anyRef2MinderAnyRef([1659][1659]TestCaseSample1.this.bookXsd).onto([1672]1)))([1415][1415]TestCaseSample1.this.tdl);
+    [1415]<stable> <accessor> def rivet3: [1415]mtdl.Rivet = [1415][1415]TestCaseSample1.this.rivet3;
+    [1863]def xmlLogger([1873]any: [1878]<type: [1878]scala.Any>): [1863]Any = [1890]{
+      [1897:1901]val xmlBytes: [1901]Array[Byte] = [1928][1916]any.asInstanceOf[[1929]<type: [1929][1929]scala.Array[[1935]<type: [1935]scala.Byte>]>];
+      [1949][1945][1945]TestCaseSample1.this.INFO([1950]"XML Generator Generated XML");
+      [1988][1984][1984]TestCaseSample1.this.INFO([1989][1989][1989]new [1993][1993]scala.this.Predef.String([2000]xmlBytes));
+      [2074]any
+    }
+  }
+}
+

@@ -12,7 +12,6 @@ import scala.io.Source
  */
 object TdlCompiler {
   private val lock = new Object
-
   val MINDERTDL_PACKAGE_NAME = "minderTdl"
 
   val SCALA_COMPILER = System.getProperty("SCALA_COMPILER", "scalac")
@@ -39,11 +38,12 @@ object TdlCompiler {
 
     val packageNameSplit = packageName.split("\\.");
     val groupId = packageNameSplit(1);
-    println("compileTdl.groupId", groupId)
+    println("CompileTdl.groupId", groupId)
     //resolution is here
 
-    println("DEPENDENCYSTRING: " + dependencyString)
-    val dependencyClassLoader = DependencyClassLoaderCache.getDependencyClassLoader(dependencyString)
+    println("Dependency String: [" + dependencyString + "]")
+    val dependencyClassLoader = if (dependencyString != null && dependencyString.length != 0) DependencyClassLoaderCache.getDependencyClassLoader(dependencyString)
+    else null
 
     //now at this point, check the hash of the tdl and make sure that we are not recomping over and over
 
@@ -63,6 +63,9 @@ object TdlCompiler {
           pw.println("package " + packageName);
           pw.println()
           pw.println("import  mtdl._")
+          pw.println("import org.beybunproject.xmlContentVerifier._")
+          pw.println("import org.beybunproject.xmlContentVerifier.XmlContentVerifier._")
+          pw.println("import org.beybunproject.xmlContentVerifier.utils._")
 
           //import the root package of this packageInfo
 
@@ -71,7 +74,7 @@ object TdlCompiler {
           }
           pw.println()
 
-          pw.println("class " + className + "(override val variableWrapperMapping: scala.collection.mutable.Map[String,String], run: Boolean) extends MinderTdl(variableWrapperMapping, run){")
+          pw.println("class " + className + "(run: Boolean) extends MinderTdl(run){")
           pw.println("ThisPackage = \"" + packageName + "\"")
           pw.println("AssetPath = \"" + assetPath + "\"")
           pw.println("Version = \"" + version + "\"")
@@ -84,8 +87,16 @@ object TdlCompiler {
         }
 
 
+        val depedencyClasspath =
+          if (dependencyClassLoader != null) {
+            dependencyClassLoader.getClassPathString + File.pathSeparator
+          } else {
+            ""
+          }
+
         val executeString: String =
-          SCALA_COMPILER + " -d ../tdlcls/ -language:postfixOps -feature -classpath " + dependencyClassLoader.getClassPathString + File.pathSeparator + "../target/scala-2.11/classes/" +
+          SCALA_COMPILER + " -d ../tdlcls/ -language:postfixOps -feature -classpath " + depedencyClasspath +
+            "../target/scala-2.11/classes/" +
             File.pathSeparatorChar + "./tdlcls/" +
             File.pathSeparatorChar + "../tdlcls/" +
             File.pathSeparatorChar + "mtdl.jar" +
@@ -119,8 +130,12 @@ object TdlCompiler {
     val packagePath = MINDERTDL_PACKAGE_NAME + "/" + packageInfo;
     val packageName = packagePath.replaceAll("/", ".")
 
-    println("DEPENDENCYSTRING: " + dependencyString)
-    val dependencyClassLoader = DependencyClassLoaderCache.getDependencyClassLoader(dependencyString)
+    println("PackagePath " + packagePath);
+    println("Package Name " + packageName)
+
+    println("Dependency String: [" + dependencyString + "]")
+    val dependencyClassLoader = if (dependencyString != null && dependencyString.length != 0) DependencyClassLoaderCache.getDependencyClassLoader(dependencyString)
+    else null
 
     //now at this point, check the hash of the tdl and make sure that we are not recomping over and over
 
@@ -130,12 +145,16 @@ object TdlCompiler {
       new File("tdlcls").mkdirs();
 
       lock.synchronized {
-        val pw = new PrintWriter(new FileOutputStream("tdlsrc/" + className + ".scala"))
+        val fullFileName: String = packageName + "." + className + ".scala"
+        val pw = new PrintWriter(new FileOutputStream("tdlsrc/" + fullFileName))
 
         try {
           pw.println("package " + packageName);
           pw.println()
           pw.println("import  mtdl._")
+          pw.println("import org.beybunproject.xmlContentVerifier._")
+          pw.println("import org.beybunproject.xmlContentVerifier.XmlContentVerifier._")
+          pw.println("import org.beybunproject.xmlContentVerifier.utils._")
           pw.println()
           pw.println("object " + className + " extends mtdl.Utils{")
           pw.println("  AssetPath = \"" + assetPath + "\"")
@@ -147,7 +166,14 @@ object TdlCompiler {
         }
 
 
-        val process = Runtime.getRuntime.exec(SCALA_COMPILER + " -d ../tdlcls/ -language:postfixOps -feature -classpath ../target/scala-2.11/classes/" + File.pathSeparatorChar + "./tdlcls/" + File.pathSeparatorChar + "../tdlcls/" + File.pathSeparatorChar + "mtdl.jar" + File.pathSeparatorChar + "../mtdl.jar " + className + ".scala", null, srcDir)
+        val depedencyClasspath =
+          if (dependencyClassLoader != null) {
+            dependencyClassLoader.getClassPathString + File.pathSeparator
+          } else {
+            ""
+          }
+
+        val process = Runtime.getRuntime.exec(SCALA_COMPILER + " -d ../tdlcls/ -language:postfixOps -feature -classpath " + depedencyClasspath + "../target/scala-2.11/classes/" + File.pathSeparatorChar + "./tdlcls/" + File.pathSeparatorChar + "../tdlcls/" + File.pathSeparatorChar + "mtdl.jar" + File.pathSeparatorChar + "../mtdl.jar" + " " + fullFileName, null, srcDir)
         process.waitFor()
 
         val out = Source.fromInputStream(process.getInputStream).mkString

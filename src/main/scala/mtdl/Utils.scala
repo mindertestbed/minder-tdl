@@ -2,9 +2,19 @@ package mtdl
 
 import java.io._
 import java.net.URL
+import java.security.MessageDigest
 import java.util.Properties
-import java.util.zip.{ZipEntry, ZipInputStream}
+import java.util.zip.{GZIPInputStream, GZIPOutputStream, ZipEntry, ZipInputStream}
 import javax.net.ssl.HttpsURLConnection
+import javax.xml.bind.DatatypeConverter
+import javax.xml.namespace.NamespaceContext
+import javax.xml.parsers.DocumentBuilderFactory
+import javax.xml.transform.dom.DOMSource
+import javax.xml.transform.stream.StreamResult
+import javax.xml.transform.{OutputKeys, Transformer, TransformerFactory}
+import javax.xml.xpath.{XPath, XPathConstants, XPathExpressionException, XPathFactory}
+
+import org.w3c.dom._
 
 /**
  * Created by yerlibilgin on 18/05/15.
@@ -16,7 +26,6 @@ class Utils {
   var AssetPath: String = ""
   var ThisPackage: String = ""
   var Version: String = ""
-
 
   /**
    *
@@ -41,12 +50,65 @@ class Utils {
 
   def getAsset(asset: String) = new AssetProvider(AssetPath + "/" + asset)
 
+  def getHash(fullUrl: String): String = {
+    val cript = MessageDigest.getInstance("SHA-1");
+    cript.reset();
+    cript.update(fullUrl.getBytes("utf8"));
+    val hash = DatatypeConverter.printHexBinary(cript.digest())
+
+    hash.toString
+  }
+
   def download(url: String) = {
     val stream: ByteArrayOutputStream = new ByteArrayOutputStream();
 
-    //first check the cache for the url.
-    val cacheKey = url.replaceAll("\\p{Punct}", "_")
-    val fl = new File(dlCache.getAbsolutePath, cacheKey);
+    //CREATE DOWNLOAD PATH
+    var downloadLocation: String = dlCache.getAbsolutePath
+
+    //Remove "http://" from the url and split acc. to the /
+    var splittedUrl: Array[String] = null
+    if (url.startsWith("https"))
+      splittedUrl = url.substring(8).split("/")
+    else
+      splittedUrl = url.substring(7).split("/")
+
+    //If there is port, split that too
+    if (splittedUrl(0).contains(":")) {
+      val address: Array[String] = splittedUrl(0).split(":");
+      var addressWthPunct = address(0).replaceAll("\\p{Punct}", "_")
+      downloadLocation = downloadLocation + File.separator + addressWthPunct
+      var tmp = new File(downloadLocation);
+      tmp.mkdirs()
+      println(downloadLocation)
+
+      addressWthPunct = address(1).replaceAll("\\p{Punct}", "_")
+      downloadLocation = downloadLocation + File.separator + addressWthPunct
+      tmp = new File(downloadLocation);
+      tmp.mkdirs()
+      println(downloadLocation)
+
+    } else {
+      var addressWthPunct = splittedUrl(0).replaceAll("\\p{Punct}", "_")
+      downloadLocation = downloadLocation + File.separator + addressWthPunct
+      var tmp = new File(downloadLocation);
+      tmp.mkdirs()
+    }
+
+    var arraySize: Int = splittedUrl.length
+    for (i <- 1 until arraySize - 1) {
+      var addressWthPunct = splittedUrl(i).replaceAll("\\p{Punct}", "_")
+      downloadLocation = downloadLocation + File.separator + splittedUrl(i)
+      println(downloadLocation)
+      var tmp = new File(downloadLocation);
+      tmp.mkdirs()
+    }
+
+    var fileName = splittedUrl(arraySize - 1).replaceAll("\\p{Punct}", "_")
+    println(fileName)
+
+
+    val cacheKeyHash = getHash(fileName)
+    val fl = new File(downloadLocation, cacheKeyHash);
     if (fl.exists()) {
       var len: Int = 0
       val fis = new FileInputStream(fl)
@@ -69,6 +131,7 @@ class Utils {
       outs close;
       streamArr
     }
+
   }
 
   /**
@@ -97,10 +160,12 @@ class Utils {
    * @return
    */
   def downloadHttp(url: String, stream: OutputStream) = {
-    import sys.process._
-    import java.net.URL
+    import scala.io.Source
+    val html = Source.fromURL(url)
+    val s = html.mkString
+    //println(s)
 
-    new URL(url) #> stream
+    stream.write(s.getBytes())
   }
 
 
@@ -198,8 +263,167 @@ class Utils {
       }
     }
   }
-}
 
+  /**
+   * compress the given byte array
+   *
+   * @param plain
+   * @return
+   */
+  def gzip(plain: Array[Byte]): Array[Byte] = {
+    val bais: ByteArrayInputStream = new ByteArrayInputStream(plain)
+    val baos: ByteArrayOutputStream = new ByteArrayOutputStream
+    gzip(bais, baos)
+    baos.toByteArray
+  }
+
+  def gunzip(compressed: Array[Byte]): Array[Byte] = {
+    val bais: ByteArrayInputStream = new ByteArrayInputStream(compressed)
+    val baos: ByteArrayOutputStream = new ByteArrayOutputStream
+    gunzip(bais, baos)
+    baos.toByteArray
+  }
+
+  /**
+   * Compress the given stream as GZIP
+   *
+   * @param inputStream
+   * @param outputStream
+   */
+  def gzip(inputStream: InputStream, outputStream: OutputStream) {
+    try {
+      val gzipOutputStream: GZIPOutputStream = new GZIPOutputStream(outputStream, true)
+      transferData(inputStream, gzipOutputStream)
+      gzipOutputStream.close
+    }
+    catch {
+      case e: Exception => {
+        throw new RuntimeException("GZIP Compression failed")
+      }
+    }
+  }
+
+  /**
+   * Decompress the given stream that contains gzip data
+   *
+   * @param inputStream
+   * @param outputStream
+   */
+  def gunzip(inputStream: InputStream, outputStream: OutputStream) {
+    try {
+      val gzipInputStream: GZIPInputStream = new GZIPInputStream(inputStream)
+      transferData(gzipInputStream, outputStream)
+      gzipInputStream.close
+    }
+    catch {
+      case e: Exception => {
+        throw new RuntimeException("GZIP decompression failed")
+      }
+    }
+  }
+
+  @throws(classOf[Exception])
+  def transferData(inputStream: InputStream, outputStream: OutputStream) {
+    val chunk: Array[Byte] = new Array[Byte](1024)
+    var read: Int = -1
+    while ((({
+      read = inputStream.read(chunk, 0, chunk.length);
+      read
+    })) > 0) {
+      outputStream.write(chunk, 0, read)
+    }
+  }
+
+  def prettyPrint(node: Node, indentAmount: Int = 2): String = {
+    var transformer: Transformer = null
+    try {
+      transformer = TransformerFactory.newInstance.newTransformer
+      transformer.setOutputProperty(OutputKeys.INDENT, "yes")
+      transformer.setOutputProperty(OutputKeys.DOCTYPE_PUBLIC, "yes")
+      transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "" + indentAmount)
+      val result: StreamResult = new StreamResult(new StringWriter)
+      val source: DOMSource = new DOMSource(node)
+      transformer.transform(source, result)
+      val xmlString: String = result.getWriter.toString
+      xmlString
+    }
+    catch {
+      case e: Exception => {
+        e.printStackTrace
+        return ""
+      }
+    }
+  }
+
+  val factory = DocumentBuilderFactory.newInstance
+  factory.setNamespaceAware(true)
+  val documentBuilder = factory.newDocumentBuilder();
+
+  def parseXml(xml: String): Document = {
+    documentBuilder.parse(new ByteArrayInputStream(xml.getBytes));
+  }
+
+  def parseXmlByteArray(xml: Array[Byte]): Document = {
+    documentBuilder.parse(new ByteArrayInputStream(xml));
+  }
+
+  private val xPath: XPath = {
+    val xPath: XPath = XPathFactory.newInstance.newXPath
+    xPath.setNamespaceContext(new NamespaceContext {
+      def getNamespaceURI(prefix: String) = "*"
+
+      def getPrefix(namespace: String) = null
+
+      def getPrefixes(namespace: String) = null
+    })
+    xPath
+  }
+
+  def xpathQuerySingleNode(node: Node, xpath: String): Node = {
+    try {
+      val o: AnyRef = xPath.evaluate(xpath, node, XPathConstants.NODE)
+      if (o == null) throw new RuntimeException("No match for [" + xpath + "]")
+      o.asInstanceOf[Node]
+    }
+    catch {
+      case e: XPathExpressionException => {
+        throw new RuntimeException(e)
+      }
+    }
+  }
+
+  def xpathQueryList(node: Node, xpath: String): List[Node] = {
+    try {
+      val o: AnyRef = xPath.evaluate(xpath, node, XPathConstants.NODESET)
+      if (o == null) throw new RuntimeException("No match for [" + xpath + "]")
+      val list: NodeList = o.asInstanceOf[NodeList]
+
+      val els = new scala.collection.mutable.MutableList[Node]
+      var i = 0
+      while (i < list.getLength) {
+        els += (o.asInstanceOf[NodeList]).item(i)
+        i += 1;
+      }
+
+      els.toList
+    } catch {
+      case e: XPathExpressionException => {
+        throw new RuntimeException(e)
+      }
+    }
+  }
+
+
+  def createProperties(tuples: Tuple2[String, String]*): Properties = {
+    val properties = new Properties
+    for (tuple <- tuples) {
+      properties.put(tuple._1, tuple._2);
+    }
+
+    properties
+  }
+
+}
 
 /**
  * Used to provide additional methods to Int.
@@ -222,6 +446,21 @@ case class MinderInt(in: Int) {
     p.select = (a: Any) => in;
     p
   }
+
+  def -->(out: Int) = onto(out)
+}
+
+case class invokeLater(vall: () => Any) {
+  def onto(out: Int) = {
+    val p = ParameterPipe(-1, out - 1);
+    //whatever happens, return the value.
+    p.select = (a: Any) => {
+      vall()
+    };
+    p
+  }
+
+  def -->(out: Int) = onto(out)
 }
 
 /**
@@ -241,10 +480,12 @@ case class MinderAny(src: Any) {
     p.select = (a: Any) => src;
     p
   }
+
+  def -->(out: Int) = onto(out)
+
 }
 
-
-class MinderNull{
+class MinderNull {
   /**
    * When a value is mapped onto <code>out</code>, then
    * it is returned in the default converter function.
@@ -257,5 +498,7 @@ class MinderNull{
     p.select = (a: Any) => null;
     p
   }
+
+  def -->(out: Int) = onto(out)
 }
 

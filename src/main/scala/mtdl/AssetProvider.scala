@@ -5,7 +5,7 @@ import java.io.{FileInputStream, BufferedInputStream}
 /**
  * Created by yerlibilgin on 18/05/15.
  */
-class AssetProvider(source: String) {
+class AssetProvider(val source: String) {
   def getValue(): Array[Byte] = {
     val bis = new BufferedInputStream(new FileInputStream("assets/" + source))
     val bArray = Stream.continually(bis.read).takeWhile(-1 !=).map(_.toByte).toArray

@@ -20,26 +20,37 @@ class DefaultTDLClassLoader(urls: Array[URL], dependencyClassLoader: DependencyC
       import scala.util.control.Breaks._
 
       var clz: Class[_] = null
-      breakable {
-        for (cl: ClassLoader <- TDLClassLoaderProvider.externalClassLoaders) {
-          println("Try " + cl.getClass().getName() + " for " + name)
-          try {
-            clz = Class.forName(name, true, cl);
-          } catch {
-            case th: Throwable => {}
-          }
-          if (clz != null) {
-            println(name + " hit " + cl)
-            break;
+
+      if (clz == null) {
+        breakable {
+          println("Try external class loaders: " + TDLClassLoaderProvider.externalClassLoaders.size())
+          for (cl: ClassLoader <- TDLClassLoaderProvider.externalClassLoaders) {
+            println("Try " + cl.getClass().getName() + " for " + name)
+            try {
+              clz = Class.forName(name, true, cl);
+            } catch {
+              case th: Throwable => {}
+            }
+            if (clz != null) {
+              println(name + " hit " + cl)
+              break;
+            }
           }
         }
       }
 
-      if (clz == null) {
+      if (clz == null && dependencyClassLoader != null) {
         //try me one last time
         println("Probably this is a group dependency, Try dependency loader")
-        clz = dependencyClassLoader.loadClass(name)
+        try {
+          clz = dependencyClassLoader.loadClass(name)
+        }catch {case  _ => {}}
       }
+
+      if (clz == null){
+        throw new NoClassDefFoundError(name);
+      }
+
       clz
     }
   }
