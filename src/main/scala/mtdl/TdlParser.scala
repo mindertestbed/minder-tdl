@@ -22,6 +22,7 @@ object TdlParser {
   }
 
   def main(args: Array[String]): Unit = {
+    println(System.getProperty("user.dir"))
     val tdl = Source.fromFile("parse.txt").mkString
 
     val pattern = Pattern.compile("""this\.anyRef2MinderAnyRef\(.*\)\.onto""", Pattern.MULTILINE)
@@ -31,6 +32,8 @@ object TdlParser {
     while (matcher.find()) {
       println(matcher.group())//tdl.substring(matcher.start(), matcher.end));
     }
+
+    println("What happened here")
 
     //val reader = new FileReader("sample.dsl.txt")
 
