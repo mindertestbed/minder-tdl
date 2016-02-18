@@ -1,22 +1,25 @@
 package org.beybunproject.xmlContentVerifier;
 
 import org.beybunproject.xmlContentVerifier.iso_schematron_xslt2.SchematronClassResolver;
+import org.beybunproject.xmlContentVerifier.schemareport.LoggingErrorHandler;
+import org.beybunproject.xmlContentVerifier.schemareport.XMLReportGenerator;
+import org.beybunproject.xmlContentVerifier.schemareport.model.SchemaValidationReport;
 import org.beybunproject.xmlContentVerifier.utils.ExceptionUtils;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
 import javax.xml.transform.*;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Validator;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URL;
+import java.text.ParseException;
 import java.util.Properties;
 
 /**
- * Author: yerlibilgin
+ * Author: yerlibilgin & ozgurmelis
  * Date: 12/09/15.
  */
 public class XmlContentVerifier {
@@ -26,14 +29,35 @@ public class XmlContentVerifier {
   }
 
   /**
-   * Checks the schema of the xml WRT the given xsd and returns the result
+   *
+   * XSD VERIFICATION
+   */
+  /**
+   * Checks the schema of the xml WRT the given xsd and returns the result including report in XML format.
    *
    * @param schema the schema definition that will be used for verification
    * @param xml    the xml that will be verified
    */
-  public static void verifyXsd(Schema schema, byte[] xml) {
-    verifyXsd(schema, new ByteArrayInputStream(xml));
+  public static String verifyXsd(Schema schema, byte[] xml) throws IOException, SAXException {
+    return verifyXsd(schema, new ByteArrayInputStream(xml));
   }
+
+  public static String verifyXsd(Schema xsd, InputStream inputStream) throws IOException, SAXException {
+    javax.xml.validation.Schema schema = null;
+
+    try {
+      javax.xml.validation.SchemaFactory schemaFactory = javax.xml.validation.SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+      schemaFactory.setResourceResolver(xsd);
+      schema = schemaFactory.newSchema(new StreamSource(xsd.getInputStream(), xsd.getSystemId()));
+    } catch (Exception ex) {
+      throw new RuntimeException("Unable to parse schema", ex);
+    }
+
+    Source xmlFile = new StreamSource(inputStream);
+    return doXSDVerification(xmlFile, schema);
+
+  }
+
 
   /**
    * Assuming plain XSD and XML bytes, this method delegates the
@@ -45,8 +69,8 @@ public class XmlContentVerifier {
    * @param xsd
    * @param xml
    */
-  public static void verifyXsd(byte[] xsd, byte[] xml) {
-    verifyXsd(new ByteArrayInputStream(xsd), new ByteArrayInputStream(xml));
+  public static String verifyXsd(byte[] xsd, byte[] xml) throws IOException, SAXException {
+    return verifyXsd(new ByteArrayInputStream(xsd), new ByteArrayInputStream(xml));
   }
 
   /**
@@ -55,7 +79,7 @@ public class XmlContentVerifier {
    * @param xsd as input stream
    * @param xml as input stream
    */
-  public static void verifyXsd(InputStream xsd, InputStream xml) {
+  public static String verifyXsd(InputStream xsd, InputStream xml) throws IOException, SAXException {
     javax.xml.validation.Schema schema = null;
     try {
       javax.xml.validation.SchemaFactory schemaFactory = javax.xml.validation.SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
@@ -64,42 +88,17 @@ public class XmlContentVerifier {
       throw new RuntimeException("Unable to parse schema", ex);
     }
 
-    try {
-      Source xmlFile = new StreamSource(xml);
-      Validator validator = schema.newValidator();
-      validator.validate(xmlFile);
+    Source xmlFile = new StreamSource(xml);
+    return doXSDVerification(xmlFile, schema);
 
-    } catch (Exception ex) {
-      throw new RuntimeException("XML Verification failed", ex);
-    }
-  }
-
-  public static void verifyXsd(Schema xsd, InputStream inputStream) {
-    javax.xml.validation.Schema schema = null;
-    try {
-      javax.xml.validation.SchemaFactory schemaFactory = javax.xml.validation.SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-      schemaFactory.setResourceResolver(xsd);
-      schema = schemaFactory.newSchema(new StreamSource(xsd.getInputStream(), xsd.getSystemId()));
-    } catch (Exception ex) {
-      throw new RuntimeException("Unable to parse schema", ex);
-    }
-
-    try {
-      Source xmlFile = new StreamSource(inputStream);
-      Validator validator = schema.newValidator();
-      validator.validate(xmlFile);
-
-    } catch (Exception ex) {
-      throw new RuntimeException("XML Verification failed", ex);
-    }
   }
 
 
-  public static void verifyXsd(String url, byte[] bytes) {
-    verifyXsd(url, new ByteArrayInputStream(bytes));
+  public static String verifyXsd(String url, byte[] bytes) throws IOException, SAXException {
+    return verifyXsd(url, new ByteArrayInputStream(bytes));
   }
 
-  public static void verifyXsd(String url, InputStream inputStream) {
+  public static String verifyXsd(String url, InputStream inputStream) throws IOException, SAXException {
     javax.xml.validation.Schema schema = null;
     try {
       javax.xml.validation.SchemaFactory schemaFactory = javax.xml.validation.SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
@@ -108,25 +107,16 @@ public class XmlContentVerifier {
       throw ExceptionUtils.asRuntimeException(ex);
     }
 
-    try {
-      Source xmlFile = new StreamSource(inputStream);
-      Validator validator = schema.newValidator();
-      validator.validate(xmlFile);
+    Source xmlFile = new StreamSource(inputStream);
+    return doXSDVerification(xmlFile, schema);
 
-    } catch (Exception ex) {
-      throw new RuntimeException("XML Verification failed", ex);
-    }
   }
 
-  public static void verifyXsd(String url, String xmlUrl) {
-    try {
-      verifyXsd(new URL(url), new URL(xmlUrl));
-    } catch (Exception ex) {
-      throw ExceptionUtils.asRuntimeException(ex);
-    }
+  public static String verifyXsd(String url, String xmlUrl) throws IOException, SAXException {
+    return verifyXsd(new URL(url), new URL(xmlUrl));
   }
 
-  public static void verifyXsd(URL url, URL xmlUrl) {
+  public static String verifyXsd(URL url, URL xmlUrl) throws IOException, SAXException {
     javax.xml.validation.Schema schema = null;
     try {
       javax.xml.validation.SchemaFactory schemaFactory = javax.xml.validation.SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
@@ -135,42 +125,103 @@ public class XmlContentVerifier {
       throw ExceptionUtils.asRuntimeException(ex);
     }
 
+    Source xmlFile = new StreamSource(xmlUrl.openStream());
+    return doXSDVerification(xmlFile, schema);
+
+  }
+
+  private static String doXSDVerification(Source xmlFile, javax.xml.validation.Schema schema) throws IOException, SAXException {
     try {
-      Source xmlFile = new StreamSource(xmlUrl.openStream());
+
       Validator validator = schema.newValidator();
+      LoggingErrorHandler errorHandler = new LoggingErrorHandler();
+      validator.setErrorHandler(errorHandler);
       validator.validate(xmlFile);
 
-    } catch (Exception ex) {
+      if ((null == errorHandler.getReport().getFatalerror()) && (null == errorHandler.getReport().getErrors())) {
+        errorHandler.getReport().setResult("SUCCESS");
+      } else {
+        errorHandler.getReport().setResult("FAILURE");
+      }
+
+      try {
+        return XMLReportGenerator.generateXML(SchemaValidationReport.class.getName(), errorHandler.getReport());
+      } catch (ParseException e) {
+        throw new RuntimeException("Could not create XML report", e);
+      }
+    } catch (IOException ex) {
       throw new RuntimeException("XML Verification failed", ex);
+    } catch (SAXException ex) {
+      throw new RuntimeException("XML Verification fatal error", ex);
     }
   }
 
-  public static void verifySchematron(byte[] sch, byte[] xml, Properties properties) {
+  /**
+   *
+   * SCHEMATRON VERIFICATION
+   */
+
+  /**
+   * =============
+   */
+  public static String verifySchematron(byte[] sch, byte[] xml, Properties properties) throws RuntimeException {
     ByteArrayInputStream bSchematron = new ByteArrayInputStream(sch);
     ByteArrayInputStream bXml = new ByteArrayInputStream(xml);
-    verifySchematron(bSchematron, bXml, properties);
+    return verifySchematron(bSchematron, bXml, properties);
+
   }
 
-  public static String schematronReport(byte[] sch, byte[] xml, Properties properties) {
+  public static String verifySchematron(byte[] sch, InputStream xml, Properties properties) throws RuntimeException {
     ByteArrayInputStream bSchematron = new ByteArrayInputStream(sch);
-    ByteArrayInputStream bXml = new ByteArrayInputStream(xml);
-    return schematronReport(bSchematron, bXml, properties);
+    return verifySchematron(bSchematron, xml, properties);
   }
 
-  public static void verifySchematron(byte[] sch, InputStream xml, Properties properties) {
-    ByteArrayInputStream bSchematron = new ByteArrayInputStream(sch);
-    verifySchematron(bSchematron, xml, properties);
+  /**
+   * Performs schematron verification with the given schematron file on the provided xml
+   *
+   * @param schematron
+   * @param xml
+   */
+  public static String verifySchematron(InputStream schematron, InputStream xml, Properties properties) throws RuntimeException {
+    try {
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      simpleTransformStream(SchematronClassResolver.rstrm("iso_dsdl_include.xsl"), schematron, baos, properties);
+      ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+      baos.reset();
+      simpleTransformStream(SchematronClassResolver.rstrm("iso_abstract_expand.xsl"), bais, baos, properties);
+      bais = new ByteArrayInputStream(baos.toByteArray());
+      baos.reset();
+      simpleTransformStream(SchematronClassResolver.rstrm("iso_svrl_for_xslt2.xsl"), bais, baos, properties);
+      bais = new ByteArrayInputStream(baos.toByteArray());
+      baos.reset();
+      simpleTransformStream(bais, xml, baos, properties);
+
+      return baos.toString();
+    } catch (Exception ex) {
+      throw new RuntimeException(ex);
+    }
+  }
+  //=========
+
+  /**
+   * =========
+   */
+
+  public static String verifySchematron(String url, byte[] xml) throws RuntimeException {
+    return verifySchematron(url, xml, null);
   }
 
-  public static void verifySchematron(URL schematronUrl, byte[] xml, Properties properties) {
-    ByteArrayInputStream bXml = new ByteArrayInputStream(xml);
-    verifySchematron(schematronUrl, bXml, properties);
+  public static String verifySchematron(String url, byte[] xml, Properties properties) throws RuntimeException {
+    try {
+      return verifySchematron(new URL(url), xml, properties);
+    } catch (Exception ex) {
+      throw ExceptionUtils.asRuntimeException(ex);
+    }
   }
 
-
-  public static String schematronReport(URL schematronUrl, byte[] xml, Properties properties) {
+  public static String verifySchematron(URL schematronUrl, byte[] xml, Properties properties) throws RuntimeException {
     ByteArrayInputStream bXml = new ByteArrayInputStream(xml);
-    return schematronReport(schematronUrl, bXml, properties);
+    return verifySchematron(schematronUrl, bXml, properties);
   }
 
   /**
@@ -179,151 +230,24 @@ public class XmlContentVerifier {
    * @param url
    * @param xml
    */
-  public static void verifySchematron(URL url, InputStream xml, Properties properties) {
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    urlTransform(SchematronClassResolver.rstrm("iso_dsdl_include.xsl"), url, baos, properties);
-    ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-    baos.reset();
-    simpleTransformStream(SchematronClassResolver.rstrm("iso_abstract_expand.xsl"), bais, baos, properties);
-    bais = new ByteArrayInputStream(baos.toByteArray());
-    baos.reset();
-    simpleTransformStream(SchematronClassResolver.rstrm("iso_svrl_for_xslt2.xsl"), bais, baos, properties);
-    bais = new ByteArrayInputStream(baos.toByteArray());
-    baos.reset();
-    simpleTransformStream(bais, xml, baos, properties);
-    checkSchematronResult(baos.toString());
-  }
-
-  public static String schematronReport(URL url, InputStream xml, Properties properties) {
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    urlTransform(SchematronClassResolver.rstrm("iso_dsdl_include.xsl"), url, baos, properties);
-    ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-    baos.reset();
-    simpleTransformStream(SchematronClassResolver.rstrm("iso_abstract_expand.xsl"), bais, baos, properties);
-    bais = new ByteArrayInputStream(baos.toByteArray());
-    baos.reset();
-    simpleTransformStream(SchematronClassResolver.rstrm("iso_svrl_for_xslt2.xsl"), bais, baos, properties);
-    bais = new ByteArrayInputStream(baos.toByteArray());
-    baos.reset();
-    simpleTransformStream(bais, xml, baos, properties);
-    return baos.toString();
-  }
-
-  /**
-   * Performs schematron verification with the given schematron file on the provided xml
-   *
-   * @param schematron
-   * @param xml
-   */
-  public static void verifySchematron(Schema schematron, byte[] xml) {
-    verifySchematron(schematron, new ByteArrayInputStream(xml), null);
-  }
-
-  /**
-   * Performs schematron verification with the given schematron file on the provided xml
-   *
-   * @param schematron
-   * @param xml
-   */
-  public static void verifySchematron(Schema schematron, byte[] xml, Properties properties) {
-    verifySchematron(schematron, new ByteArrayInputStream(xml), properties);
-  }
-
-  /**
-   * Performs schematron verification with the given schematron file on the provided xml
-   *
-   * @param schematron
-   * @param xml
-   */
-  public static String schematronReport(Schema schematron, byte[] xml, Properties properties) {
-    return schematronReport(schematron, new ByteArrayInputStream(xml), properties);
-  }
-
-  public static void verifySchematron(String url, byte[] xml) {
-    verifySchematron(url, xml, null);
-  }
-
-  public static void verifySchematron(String url, byte[] xml, Properties properties) {
+  public static String verifySchematron(URL url, InputStream xml, Properties properties) throws RuntimeException {
     try {
-      verifySchematron(new URL(url), xml, properties);
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      urlTransform(SchematronClassResolver.rstrm("iso_dsdl_include.xsl"), url, baos, properties);
+      ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+      baos.reset();
+      simpleTransformStream(SchematronClassResolver.rstrm("iso_abstract_expand.xsl"), bais, baos, properties);
+      bais = new ByteArrayInputStream(baos.toByteArray());
+      baos.reset();
+      simpleTransformStream(SchematronClassResolver.rstrm("iso_svrl_for_xslt2.xsl"), bais, baos, properties);
+      bais = new ByteArrayInputStream(baos.toByteArray());
+      baos.reset();
+      simpleTransformStream(bais, xml, baos, properties);
+      return baos.toString();
     } catch (Exception ex) {
-      throw ExceptionUtils.asRuntimeException(ex);
+      throw new RuntimeException(ex);
     }
   }
-
-
-  /**
-   * Performs schematron verification with the given schematron file on the provided xml
-   *
-   * @param schematron
-   * @param xml
-   */
-  public static void verifySchematron(Schema schematron, InputStream xml, Properties properties) {
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    schemaTransform(SchematronClassResolver.rstrm("iso_dsdl_include.xsl"), schematron, baos, properties);
-    ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-    baos.reset();
-    simpleTransformStream(SchematronClassResolver.rstrm("iso_abstract_expand.xsl"), bais, baos, properties);
-    bais = new ByteArrayInputStream(baos.toByteArray());
-    baos.reset();
-    simpleTransformStream(SchematronClassResolver.rstrm("iso_svrl_for_xslt2.xsl"), bais, baos, properties);
-    bais = new ByteArrayInputStream(baos.toByteArray());
-    baos.reset();
-    simpleTransformStream(bais, xml, baos, properties);
-    checkSchematronResult(baos.toString());
-  }
-
-  public static String schematronReport(Schema schematron, InputStream xml, Properties properties) {
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    schemaTransform(SchematronClassResolver.rstrm("iso_dsdl_include.xsl"), schematron, baos, properties);
-    ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-    baos.reset();
-    simpleTransformStream(SchematronClassResolver.rstrm("iso_abstract_expand.xsl"), bais, baos, properties);
-    bais = new ByteArrayInputStream(baos.toByteArray());
-    baos.reset();
-    simpleTransformStream(SchematronClassResolver.rstrm("iso_svrl_for_xslt2.xsl"), bais, baos, properties);
-    bais = new ByteArrayInputStream(baos.toByteArray());
-    baos.reset();
-    simpleTransformStream(bais, xml, baos, properties);
-    return baos.toString();
-  }
-
-  /**
-   * Performs schematron verification with the given schematrno file on the provided xml
-   *
-   * @param schematron
-   * @param xml
-   */
-  public static void verifySchematron(InputStream schematron, InputStream xml, Properties properties) {
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    simpleTransformStream(SchematronClassResolver.rstrm("iso_dsdl_include.xsl"), schematron, baos, properties);
-    ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-    baos.reset();
-    simpleTransformStream(SchematronClassResolver.rstrm("iso_abstract_expand.xsl"), bais, baos, properties);
-    bais = new ByteArrayInputStream(baos.toByteArray());
-    baos.reset();
-    simpleTransformStream(SchematronClassResolver.rstrm("iso_svrl_for_xslt2.xsl"), bais, baos, properties);
-    bais = new ByteArrayInputStream(baos.toByteArray());
-    baos.reset();
-    simpleTransformStream(bais, xml, baos, properties);
-    checkSchematronResult(baos.toString());
-  }
-
-  public static String schematronReport(InputStream schematron, InputStream xml, Properties properties) {
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    simpleTransformStream(SchematronClassResolver.rstrm("iso_dsdl_include.xsl"), schematron, baos, properties);
-    ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-    baos.reset();
-    simpleTransformStream(SchematronClassResolver.rstrm("iso_abstract_expand.xsl"), bais, baos, properties);
-    bais = new ByteArrayInputStream(baos.toByteArray());
-    baos.reset();
-    simpleTransformStream(SchematronClassResolver.rstrm("iso_svrl_for_xslt2.xsl"), bais, baos, properties);
-    bais = new ByteArrayInputStream(baos.toByteArray());
-    baos.reset();
-    simpleTransformStream(bais, xml, baos, properties);
-    return baos.toString();
-  }
-
 
   private static void urlTransform(InputStream rstrm, URL url, OutputStream outputStream, Properties properties) {
     try {
@@ -338,6 +262,44 @@ public class XmlContentVerifier {
       transformer.transform(new StreamSource(url.toExternalForm()), new StreamResult(outputStream));
     } catch (Exception ex) {
       throw ExceptionUtils.asRuntimeException(ex);
+    }
+  }
+  //=========
+
+
+  /**
+   * =========
+   * Performs schematron verification with the given schematron file on the provided xml
+   *
+   * @param schematron
+   * @param xml
+   */
+  public static String verifySchematron(Schema schematron, byte[] xml, Properties properties) throws RuntimeException {
+    return verifySchematron(schematron, new ByteArrayInputStream(xml), properties);
+  }
+
+  /**
+   * Performs schematron verification with the given schematron file on the provided xml
+   *
+   * @param schematron
+   * @param xml
+   */
+  public static String verifySchematron(Schema schematron, InputStream xml, Properties properties) throws RuntimeException {
+    try {
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      schemaTransform(SchematronClassResolver.rstrm("iso_dsdl_include.xsl"), schematron, baos, properties);
+      ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+      baos.reset();
+      simpleTransformStream(SchematronClassResolver.rstrm("iso_abstract_expand.xsl"), bais, baos, properties);
+      bais = new ByteArrayInputStream(baos.toByteArray());
+      baos.reset();
+      simpleTransformStream(SchematronClassResolver.rstrm("iso_svrl_for_xslt2.xsl"), bais, baos, properties);
+      bais = new ByteArrayInputStream(baos.toByteArray());
+      baos.reset();
+      simpleTransformStream(bais, xml, baos, properties);
+      return baos.toString();
+    } catch (Exception ex) {
+      throw new RuntimeException(ex);
     }
   }
 
@@ -358,6 +320,8 @@ public class XmlContentVerifier {
       throw ExceptionUtils.asRuntimeException(ex);
     }
   }
+  //=========
+
 
   /**
    * Simple transformation method.
@@ -414,14 +378,6 @@ public class XmlContentVerifier {
 
   public static Schema schemaFromURL(String name, String url, ArchiveType archiveType) {
     return SchemaFactory.schemaFromUrl(name, url, archiveType);
-  }
-
-  private static void checkSchematronResult(String result) {
-    //simple check might be dangerous.
-    if (result.contains("<svrl:failed-assert")) {
-      //System.out.println(result);
-      throw new RuntimeException("Schematron verification failed");
-    }
   }
 
 

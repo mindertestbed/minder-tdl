@@ -23,7 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Created by melis on 25/05/15.
+ * Created by ozgurmelis on 25/05/15.
  */
 public class DependencyService {
   private RepositorySystem repositorySystem;

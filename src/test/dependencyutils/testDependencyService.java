@@ -3,7 +3,7 @@ package dependencyutils;
 import minderengine.dependencyutils.DependencyService;
 
 /**
- * Created by melis on 25/05/15.
+ * Created by ozgurmelis on 25/05/15.
  */
 public class testDependencyService {
     public static void main(String[ ] arg){
