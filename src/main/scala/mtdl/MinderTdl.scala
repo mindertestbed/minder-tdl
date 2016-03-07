@@ -26,8 +26,9 @@ abstract class MinderTdl(val run: java.lang.Boolean) extends Utils {
 
   var RivetDefs = new util.ArrayList[Rivet]()
 
-  val wrapperDefs: mutable.Set[String] = mutable.Set[String]()
+  var currentRivetIndex : Int = 0;
 
+  val wrapperDefs: mutable.Set[String] = mutable.Set[String]()
 
   def NULLSLOT = new NullSlot()
 
@@ -85,7 +86,6 @@ abstract class MinderTdl(val run: java.lang.Boolean) extends Utils {
   }
 
   def INFO(any: Any): Unit = {
-    info(any)
   }
 
   def INFO(any: Any, throwable: Throwable): Unit = {
@@ -190,6 +190,11 @@ abstract class MinderTdl(val run: java.lang.Boolean) extends Utils {
 
   def getNextRivetId(): Int = {
     rivetIdGenerator.getAndIncrement()
+  }
+
+
+  def suspend() = {
+    RivetDefs.add(new Suspend());
   }
 }
 

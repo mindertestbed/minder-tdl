@@ -118,4 +118,8 @@ class Rivet(val wrapperFunction: WrapperFunction, pipeListList: List[List[Parame
     this.tplStepType = tplStepType;
     this.tplStepDescription = tplStepDescription;
   }
+
+}
+
+class Suspend(implicit tdl: MinderTdl)  extends Rivet(null,null){
 }
