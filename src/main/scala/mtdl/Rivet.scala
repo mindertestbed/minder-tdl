@@ -22,7 +22,7 @@ class Rivet(val wrapperFunction: WrapperFunction, pipeListList: List[List[Parame
   /**
    * Hold a flat list of all parameter pipes.
    */
-  val pipes = if(pipeListList != null) pipeListList.flatten else List()
+  val pipes = if(pipeListList != null && !pipeListList.isEmpty) pipeListList.flatten else List()
 
   private var _result:Object = null
   def result = _result
@@ -44,7 +44,7 @@ class Rivet(val wrapperFunction: WrapperFunction, pipeListList: List[List[Parame
   println("Slot params size " + (wrapperFunction.params == null));
 
   //if the pipe list is empty, then the wrapperFunction should also be zero-param
-  if (pipes.isEmpty && !wrapperFunction.params.isEmpty)
+  if (pipes.isEmpty && !wrapperFunction.params.isEmpty && wrapperFunction.params.size != 1000)
     throw new IllegalArgumentException("The wrapperFunction requires arguments but none is supplied")
 
 
@@ -121,5 +121,5 @@ class Rivet(val wrapperFunction: WrapperFunction, pipeListList: List[List[Parame
 
 }
 
-class Suspend(implicit tdl: MinderTdl)  extends Rivet(null,null){
+class Suspend(implicit tdl: MinderTdl)  extends Rivet(new NullSlot,List()){
 }
