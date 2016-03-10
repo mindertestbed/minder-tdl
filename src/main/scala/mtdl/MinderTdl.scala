@@ -86,6 +86,7 @@ abstract class MinderTdl(val run: java.lang.Boolean) extends Utils {
   }
 
   def INFO(any: Any): Unit = {
+    info(any)
   }
 
   def INFO(any: Any, throwable: Throwable): Unit = {
