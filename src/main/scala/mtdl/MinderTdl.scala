@@ -14,7 +14,7 @@ import scala.collection.mutable.MutableList
   * @param run
   */
 abstract class MinderTdl(val run: java.lang.Boolean) extends Utils {
-  implicit val tdl = this;
+  implicit val tdl = this
 
   implicit def str2MinderStr(str: String) = MinderStr(str)
 
@@ -26,7 +26,7 @@ abstract class MinderTdl(val run: java.lang.Boolean) extends Utils {
 
   var RivetDefs = new util.ArrayList[Rivet]()
 
-  var currentRivetIndex : Int = 0;
+  var currentRivetIndex : Int = 0
 
   val wrapperDefs: mutable.Set[String] = mutable.Set[String]()
 
@@ -34,40 +34,42 @@ abstract class MinderTdl(val run: java.lang.Boolean) extends Utils {
 
   val NULL = new MinderNull()
 
+
+  var exception: Throwable = null
+
+  def THROWLATER(exception: Throwable): Unit = {
+    this.exception = exception
+  }
+
+  def THROWLATER(message: String, exception: Throwable): Unit = {
+    this.exception = new Exception(message, exception)
+  }
+
+  def THROWLATER(message: String): Unit = {
+    this.exception = new RuntimeException(message)
+  }
+
   var debug: Any => Unit = (any: Any) => println(any)
   var debugThrowable: (Any, Throwable) => Unit = (any: Any, throwable: Throwable) => {
-    println(any);
+    println(any)
     throwable.printStackTrace()
   }
   var warn: Any => Unit = (any: Any) => println(any)
   var warnThrowable: (Any, Throwable) => Unit = (any: Any, throwable: Throwable) => {
-    println(any);
+    println(any)
     throwable.printStackTrace()
   }
   var info: Any => Unit = (any: Any) => println(any)
   var infoThrowable: (Any, Throwable) => Unit = (any: Any, throwable: Throwable) => {
-    println(any);
+    println(any)
     throwable.printStackTrace()
   }
   var error: Any => Unit = (any: Any) => println(any)
   var errorThrowable: (Any, Throwable) => Unit = (any: Any, throwable: Throwable) => {
-    println(any);
+    println(any)
     throwable.printStackTrace()
   }
 
-  var exception: Throwable = null;
-
-  def THROWLATER(exception: Throwable): Unit = {
-    this.exception = exception;
-  }
-
-  def THROWLATER(message: String, exception: Throwable): Unit = {
-    this.exception = new Exception(message, exception);
-  }
-
-  def THROWLATER(message: String): Unit = {
-    this.exception = new RuntimeException(message);
-  }
 
   def DEBUG(any: Any): Unit = {
     debug(any)
@@ -110,7 +112,7 @@ abstract class MinderTdl(val run: java.lang.Boolean) extends Utils {
     val ml: mutable.MutableList[ParameterPipe] = MutableList[ParameterPipe]()
 
 
-    var actualList = list;
+    var actualList = list
     //if pipe is empty, the signal is automatically bound to the slot
     //so we should fill each param automatically.
     if (actualList.isEmpty) {
@@ -187,7 +189,7 @@ abstract class MinderTdl(val run: java.lang.Boolean) extends Utils {
   /**
     * Section added for initializing and auto incrementing the test case IDS.
     */
-  var rivetIdGenerator: AtomicInteger = new AtomicInteger(0);
+  var rivetIdGenerator: AtomicInteger = new AtomicInteger(0)
 
   def getNextRivetId(): Int = {
     rivetIdGenerator.getAndIncrement()
@@ -195,7 +197,7 @@ abstract class MinderTdl(val run: java.lang.Boolean) extends Utils {
 
 
   def suspend() = {
-    RivetDefs.add(new Suspend());
+    RivetDefs.add(new Suspend())
   }
 }
 
@@ -213,9 +215,9 @@ case class MinderStr(vall: String) {
   }
 
   def from(testCase: String)(implicit tdl: MinderTdl): Rivet = {
-    var rivet: Rivet = null;
-    var refObj: AnyRef = null;
-    var field: java.lang.reflect.Field = null;
+    var rivet: Rivet = null
+    var refObj: AnyRef = null
+    var field: java.lang.reflect.Field = null
 
     //check the class name and format
     val actualClassName =
@@ -231,19 +233,19 @@ case class MinderStr(vall: String) {
       }
 
     if (cache.containsKey(actualClassName)) {
-      val tpl = cache.get(actualClassName);
-      refObj = tpl._1;
-      field = tpl._2;
+      val tpl = cache.get(actualClassName)
+      refObj = tpl._1
+      field = tpl._2
       field.get(refObj).asInstanceOf[Rivet]
     } else {
       val clazz: Class[_] = this.getClass.getClassLoader.loadClass(actualClassName)
       refObj = clazz.getConstructors()(0).newInstance(tdl.run).asInstanceOf[AnyRef]
-      field = clazz.getDeclaredField(vall);
+      field = clazz.getDeclaredField(vall)
       field setAccessible true
-      cache.put(actualClassName, (refObj, field));
+      cache.put(actualClassName, (refObj, field))
     }
     rivet = field.get(refObj).asInstanceOf[Rivet]
-    tdl.RivetDefs.add(rivet);
+    tdl.RivetDefs.add(rivet)
     rivet
   }
 
@@ -251,7 +253,7 @@ case class MinderStr(vall: String) {
   def under(repo: String)(implicit tdl: MinderTdl): Array[Byte] = {
     //don't do anthing in description mode.
     if (!tdl.run)
-      return null;
+      return null
 
     //TODO: caching mechanism
     //check if the repo is a zip file

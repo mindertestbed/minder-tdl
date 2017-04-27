@@ -38,29 +38,29 @@ class Utils {
 
   def getParameter(key: String, default: String = ""): String = parameters.getProperty(key, default)
 
-  def addParameter(key: String, value: String) = parameters.put(key, value);
+  def addParameter(key: String, value: String) = parameters.put(key, value)
 
   def setParams(parms: String): Unit = {
-    parameters.clear();
-    parameters.load(new ByteArrayInputStream(parms.getBytes()));
+    parameters.clear()
+    parameters.load(new ByteArrayInputStream(parms.getBytes()))
   }
 
-  var dlCache = new File("dlcache");
+  var dlCache = new File("dlcache")
   dlCache.mkdirs()
 
   def getAsset(asset: String) = new AssetProvider(AssetPath + "/" + asset)
 
   def getHash(fullUrl: String): String = {
-    val cript = MessageDigest.getInstance("SHA-1");
+    val cript = MessageDigest.getInstance("SHA-1")
     cript.reset();
-    cript.update(fullUrl.getBytes("utf8"));
+    cript.update(fullUrl.getBytes("utf8"))
     val hash = DatatypeConverter.printHexBinary(cript.digest())
 
     hash.toString
   }
 
   def download(url: String) = {
-    val stream: ByteArrayOutputStream = new ByteArrayOutputStream();
+    val stream: ByteArrayOutputStream = new ByteArrayOutputStream()
 
     //CREATE DOWNLOAD PATH
     var downloadLocation: String = dlCache.getAbsolutePath
@@ -74,23 +74,23 @@ class Utils {
 
     //If there is port, split that too
     if (splittedUrl(0).contains(":")) {
-      val address: Array[String] = splittedUrl(0).split(":");
+      val address: Array[String] = splittedUrl(0).split(":")
       var addressWthPunct = address(0).replaceAll("\\p{Punct}", "_")
       downloadLocation = downloadLocation + File.separator + addressWthPunct
-      var tmp = new File(downloadLocation);
+      var tmp = new File(downloadLocation)
       tmp.mkdirs()
       println(downloadLocation)
 
       addressWthPunct = address(1).replaceAll("\\p{Punct}", "_")
       downloadLocation = downloadLocation + File.separator + addressWthPunct
-      tmp = new File(downloadLocation);
+      tmp = new File(downloadLocation)
       tmp.mkdirs()
       println(downloadLocation)
 
     } else {
       var addressWthPunct = splittedUrl(0).replaceAll("\\p{Punct}", "_")
       downloadLocation = downloadLocation + File.separator + addressWthPunct
-      var tmp = new File(downloadLocation);
+      var tmp = new File(downloadLocation)
       tmp.mkdirs()
     }
 
@@ -99,7 +99,7 @@ class Utils {
       var addressWthPunct = splittedUrl(i).replaceAll("\\p{Punct}", "_")
       downloadLocation = downloadLocation + File.separator + splittedUrl(i)
       println(downloadLocation)
-      var tmp = new File(downloadLocation);
+      var tmp = new File(downloadLocation)
       tmp.mkdirs()
     }
 
@@ -108,13 +108,13 @@ class Utils {
 
 
     val cacheKeyHash = getHash(fileName)
-    val fl = new File(downloadLocation, cacheKeyHash);
+    val fl = new File(downloadLocation, cacheKeyHash)
     if (fl.exists()) {
       var len: Int = 0
       val fis = new FileInputStream(fl)
       len = fis.read(buffer)
       while (len > 0) {
-        stream.write(buffer, 0, len);
+        stream.write(buffer, 0, len)
         len = fis.read(buffer)
       }
       fis.close()
@@ -140,14 +140,14 @@ class Utils {
    * @param stream
    */
   def downloadHttps(httpsURL: String, stream: OutputStream) = {
-    val myurl = new URL(httpsURL);
+    val myurl = new URL(httpsURL)
     val con = myurl.openConnection().asInstanceOf[HttpsURLConnection]
     val ins = con.getInputStream()
     val buffer: Array[Byte] = Array.ofDim(2048)
 
     var len = ins.read(buffer)
     while (len > 0) {
-      stream.write(buffer, 0, len);
+      stream.write(buffer, 0, len)
       len = ins.read(buffer)
     }
     ins.close();
@@ -181,7 +181,7 @@ class Utils {
    */
   def extractFromZip(repo: String, entry: String): Array[Byte] = {
 
-    val zip = download(repo);
+    val zip = download(repo)
 
     val zisTream = new ZipInputStream(new ByteArrayInputStream(zip))
 
@@ -199,7 +199,7 @@ class Utils {
         var len: Int = 0
         len = zisTream.read(buffer)
         while (len > 0) {
-          baos.write(buffer, 0, len);
+          baos.write(buffer, 0, len)
           len = zisTream.read(buffer)
         }
         zipEntry = null
@@ -227,14 +227,14 @@ class Utils {
   }
 
   def sha256(array: Array[Byte]): Array[Byte] = {
-    import java.security.MessageDigest;
-    val md = MessageDigest.getInstance("SHA-256");
+    import java.security.MessageDigest
+    val md = MessageDigest.getInstance("SHA-256")
     md.digest(array)
   }
 
   def sha128(array: Array[Byte]): Array[Byte] = {
     import java.security.MessageDigest;
-    val md = MessageDigest.getInstance("SHA-1");
+    val md = MessageDigest.getInstance("SHA-1")
     md.digest(array)
   }
 
@@ -348,23 +348,22 @@ class Utils {
       xmlString
     }
     catch {
-      case e: Exception => {
+      case e: Exception =>
         e.printStackTrace
         return ""
-      }
     }
   }
 
   val factory = DocumentBuilderFactory.newInstance
   factory.setNamespaceAware(true)
-  val documentBuilder = factory.newDocumentBuilder();
+  val documentBuilder = factory.newDocumentBuilder()
 
   def parseXml(xml: String): Document = {
-    documentBuilder.parse(new ByteArrayInputStream(xml.getBytes));
+    documentBuilder.parse(new ByteArrayInputStream(xml.getBytes))
   }
 
   def parseXmlByteArray(xml: Array[Byte]): Document = {
-    documentBuilder.parse(new ByteArrayInputStream(xml));
+    documentBuilder.parse(new ByteArrayInputStream(xml))
   }
 
   private val xPath: XPath = {
@@ -417,7 +416,7 @@ class Utils {
   def createProperties(tuples: Tuple2[String, String]*): Properties = {
     val properties = new Properties
     for (tuple <- tuples) {
-      properties.put(tuple._1, tuple._2);
+      properties.put(tuple._1, tuple._2)
     }
 
     properties
@@ -443,7 +442,7 @@ case class MinderInt(in: Int) {
     val p = ParameterPipe((in - 1), (out - 1))
     //the default selection for a parameter pipe is to return the in value.
     //later the signal value might be passed.
-    p.select = (a: Any) => in;
+    p.select = (a: Any) => in
     p
   }
 
@@ -452,11 +451,11 @@ case class MinderInt(in: Int) {
 
 case class invokeLater(vall: () => Any) {
   def onto(out: Int) = {
-    val p = ParameterPipe(-1, out - 1);
+    val p = ParameterPipe(-1, out - 1)
     //whatever happens, return the value.
     p.select = (a: Any) => {
       vall()
-    };
+    }
     p
   }
 
@@ -477,7 +476,7 @@ case class MinderAny(src: Any) {
   def onto(out: Int) = {
     val p = ParameterPipe(-1, out - 1);
     //whatever happens, return the value.
-    p.select = (a: Any) => src;
+    p.select = (a: Any) => src
     p
   }
 
@@ -493,7 +492,7 @@ class MinderNull {
    * @return
    */
   def onto(out: Int) = {
-    val p = ParameterPipe(-1, out - 1);
+    val p = ParameterPipe(-1, out - 1)
     //whatever happens, return null.
     p.select = (a: Any) => null;
     p

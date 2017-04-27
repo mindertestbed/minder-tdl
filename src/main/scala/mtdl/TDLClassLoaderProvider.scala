@@ -1,12 +1,10 @@
 package mtdl
 
-import java.io.File
-import java.net.{URL, URLClassLoader}
+import java.net.URL
 import java.util
 
-import dependencyutils.{DependencyClassLoader, DependencyService}
+import dependencyutils.DependencyClassLoader
 
-import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
 
 object TDLClassLoaderProvider {
