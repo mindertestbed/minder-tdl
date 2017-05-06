@@ -1,6 +1,7 @@
 package dependencyutils;
 
 import mtdl.Param;
+import org.eclipse.aether.resolution.DependencyResolutionException;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -16,7 +17,7 @@ import java.util.*;
 public class DependencyClassLoaderCache {
   private static HashMap<String, DependencyClassLoader> cache = new HashMap<>();
 
-  public static DependencyClassLoader getDependencyClassLoader(String dependencyString) {
+  public static DependencyClassLoader getDependencyClassLoader(String dependencyString) throws DependencyResolutionException {
     if (!cache.containsKey(dependencyString)) {
       DependencyService dependencyService = new DependencyService(dependencyString);
       List<URL> dependecyBufferList = new ArrayList<>();

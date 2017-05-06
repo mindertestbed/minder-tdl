@@ -80,7 +80,7 @@ public class DependencyService {
     repositoryList.add(Booter.addRepository(id, type, url));
   }
 
-  public String getClassPathString() {
+  public String getClassPathString() throws DependencyResolutionException {
     for (String dependency : dependencies) {
       downloadArtifactWithAllDependencies(dependency);
     }
@@ -88,7 +88,7 @@ public class DependencyService {
     return generateClassPathStringForArtifact();
   }
 
-  private void downloadArtifactWithAllDependencies(String artifactInfo) {
+  private void downloadArtifactWithAllDependencies(String artifactInfo) throws DependencyResolutionException {
     /**
      * Specify the artifact eg. "org.apache.maven:maven-aether-provider:3.1.0"
      */
@@ -103,12 +103,7 @@ public class DependencyService {
 
     DependencyRequest dependencyRequest = new DependencyRequest(collectRequest, classpathFlter);
 
-    List<ArtifactResult> artifactResults = null;
-    try {
-      artifactResults = repositorySystem.resolveDependencies(session, dependencyRequest).getArtifactResults();
-    } catch (DependencyResolutionException e) {
-      e.printStackTrace();
-    }
+    List<ArtifactResult> artifactResults = repositorySystem.resolveDependencies(session, dependencyRequest).getArtifactResults();
 
 
     for (ArtifactResult artifactResult : artifactResults) {
