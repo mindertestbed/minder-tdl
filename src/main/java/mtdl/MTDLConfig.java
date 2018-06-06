@@ -48,7 +48,7 @@ public class MTDLConfig extends ConfigurationReader {
       }
 
       if (MTDL_JAR_PATH == null) {
-        MTDL_JAR_PATH = new File("data/mtdl.jar").getAbsolutePath();
+        MTDL_JAR_PATH = new File("conf/mtdl.jar").getAbsolutePath();
       }
 
       if (MVN_SETTINGS_XML == null) {
