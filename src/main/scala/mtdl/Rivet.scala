@@ -7,7 +7,7 @@ import scala.collection.mutable
 /**
  * Created by yerlibilgin on 05/12/14.
  */
-class Rivet(val wrapperFunction: WrapperFunction, pipeListList: List[List[ParameterPipe]])(implicit tdl: MinderTdl) {
+class Rivet(val adapterFunction: AdapterFunction, pipeListList: List[List[ParameterPipe]])(implicit tdl: MinderTdl) {
   /**
     * Fields added for GITB compliance
     * tplStepType
@@ -40,17 +40,17 @@ class Rivet(val wrapperFunction: WrapperFunction, pipeListList: List[List[Parame
 
 
   println("Pipes size " + pipes.size);
-  println("Slot name " + wrapperFunction.wrapperId + "." + wrapperFunction.signature)
-  println("Slot params size " + (wrapperFunction.params == null));
+  println("Slot name " + adapterFunction.adapterId + "." + adapterFunction.signature)
+  println("Slot params size " + (adapterFunction.params == null));
 
-  //if the pipe list is empty, then the wrapperFunction should also be zero-param
-  if (pipes.isEmpty && !wrapperFunction.params.isEmpty && wrapperFunction.params.size != 1000)
-    throw new IllegalArgumentException("The wrapperFunction requires arguments but none is supplied")
+  //if the pipe list is empty, then the adapterFunction should also be zero-param
+  if (pipes.isEmpty && !adapterFunction.params.isEmpty && adapterFunction.params.size != 1000)
+    throw new IllegalArgumentException("The adapterFunction requires arguments but none is supplied")
 
 
-  //the length of the parameters has to be the same as the number of wrapperFunctions if the signals and wrapperFunctions are not zero param.
-  if (wrapperFunction.params.size != 1000 && pipes.size != wrapperFunction.params.size && pipes.size != 1 && (pipes(0).in != -1 || pipes(0).out != -1))
-    throw new IllegalArgumentException("The number of wrapperFunction arguments has to match the number of parameter pipes")
+  //the length of the parameters has to be the same as the number of adapterFunctions if the signals and adapterFunctions are not zero param.
+  if (adapterFunction.params.size != 1000 && pipes.size != adapterFunction.params.size && pipes.size != 1 && (pipes(0).in != -1 || pipes(0).out != -1))
+    throw new IllegalArgumentException("The number of adapterFunction arguments has to match the number of parameter pipes")
 
   pipeListList.foreach(f = pipeList => {
     //ensure the list is not empty and take the first key
@@ -61,7 +61,7 @@ class Rivet(val wrapperFunction: WrapperFunction, pipeListList: List[List[Parame
 
         if (firstPipe.inRef != null) {
           if (firstPipe.inRef.source == null) throw new IllegalArgumentException("A pipe having a param ref without a signal")
-          val key =(firstPipe.inRef.source.wrapperId,firstPipe.inRef.source.signature)
+          val key =(firstPipe.inRef.source.adapterId,firstPipe.inRef.source.signature)
           signalPipeMap += (key -> pipeList)
         }else{
           freeVariablePipes ++= pipeList
@@ -71,7 +71,7 @@ class Rivet(val wrapperFunction: WrapperFunction, pipeListList: List[List[Parame
   })
 
   override def toString() = {
-    "Rivet for " + wrapperFunction.wrapperId + "." + wrapperFunction.signature
+    "Rivet for " + adapterFunction.adapterId + "." + adapterFunction.signature
   }
 
   def describe() = {
@@ -99,20 +99,20 @@ class Rivet(val wrapperFunction: WrapperFunction, pipeListList: List[List[Parame
   override def equals(other: Any): Boolean = {
     if (other.isInstanceOf[Rivet]) {
       val rvt = other.asInstanceOf[Rivet];
-      if (wrapperFunction == null) {
-        rvt.wrapperFunction == null
+      if (adapterFunction == null) {
+        rvt.adapterFunction == null
       } else {
-        if (wrapperFunction != rvt.wrapperFunction)
+        if (adapterFunction != rvt.adapterFunction)
           false
         else {
-          wrapperFunction.signature == rvt.wrapperFunction.signature && this.describe() == rvt.describe()
+          adapterFunction.signature == rvt.adapterFunction.signature && this.describe() == rvt.describe()
         }
       }
     } else
       false
   }
 
-  override def hashCode(): Int = wrapperFunction.signature.hashCode
+  override def hashCode(): Int = adapterFunction.signature.hashCode
 
   def setGITBMetadata(tplStepType: TPLStepType, tplStepDescription: String): Unit ={
     this.tplStepType = tplStepType;

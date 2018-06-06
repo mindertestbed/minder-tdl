@@ -9,19 +9,19 @@ public class testDependencyService {
     public static void main(String[ ] arg){
         DependencyService.getInstance().createRepositorySystem("new-local-repo");
 
-       //DependencyService.getInstance().addRepository("central", "default", "http://central.maven.org/maven2/");
-        //or you may use directly DependencyService.getInstance().addMavenCentralRepository();
+       //RepositoryManager.getInstance().addRepository("central", "default", "http://central.maven.org/maven2/");
+        //or you may use directly RepositoryManager.getInstance().addMavenCentralRepository();
 
         DependencyService.getInstance().addRepository("Eid public repository", "default", "http://eidrepo:8081/nexus/content/groups/public/");
-        //or you may use directly DependencyService.getInstance().addEidRepository();
+        //or you may use directly RepositoryManager.getInstance().addEidRepository();
 
 //        String groupId = "gov.tubitak.minder";//"org.apache.maven";
 //        String artifactId = "minder-common";//"maven-aether-provider";
 //        String version = "0.0.5";//"3.1.0";
 
         /**
-         * DependencyService.getInstance().downloadArtifactWithAllDependencies("org.apache.maven:maven-aether-provider:3.1.0");
-         * String classPathString = DependencyService.getInstance().generateClassPathStringForArtifact();
+         * RepositoryManager.getInstance().downloadArtifactWithAllDependencies("org.apache.maven:maven-aether-provider:3.1.0");
+         * String classPathString = RepositoryManager.getInstance().generateClassPathStringForArtifact();
          * System.out.println("Classpath: " + classPathString );
          */
 

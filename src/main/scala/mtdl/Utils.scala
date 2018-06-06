@@ -449,6 +449,11 @@ case class MinderInt(in: Int) {
   def -->(out: Int) = onto(out)
 }
 
+/**
+  * Used in cases where a parameter value will be ready only
+  * during the execution of the test
+  * @param vall
+  */
 case class invokeLater(vall: () => Any) {
   def onto(out: Int) = {
     val p = ParameterPipe(-1, out - 1)

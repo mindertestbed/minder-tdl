@@ -1,1 +1,1 @@
-val rivet1 = "slot0()" of "wrapper0" asIs
+val rivet1 = "slot0()" of "adapter0" asIs

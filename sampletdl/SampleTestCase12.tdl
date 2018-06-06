@@ -37,22 +37,22 @@ def justiceXsd = "SCFormCPartI_BD001007/data/standard/Justice.xsd" under smallCl
 
 //a rivet for a slot that does not take parameters and has to be triggered directly by
 //the engine
-val rivet1 = "slot0()" of "$wrapper0" asIs
+val rivet1 = "slot0()" of "$adapter0" asIs
 
 //a rivet that does not take parameters and will be triggered by a signal
-val rivet2 = "slot0()" of "$wrapper1" shall use("signal0()" of "$wrapper0")(automatically)
+val rivet2 = "slot0()" of "$adapter1" shall use("signal0()" of "$adapter0")(automatically)
 
 //a rivet connect a signal automatically. (pairwise match parameters)
-val rivet3 = "slot1(int, int, java.lang.String)" of "$wrapper1" shall
-  use("signal1(int, int, java.lang.String)" of "wrapper2")(automatically)
+val rivet3 = "slot1(int, int, java.lang.String)" of "$adapter1" shall
+  use("signal1(int, int, java.lang.String)" of "adapter2")(automatically)
 
-val rivet4 = "slot2(int, int, java.lang.String, byte [], byte [], java.util.Date)" of "wrapper2" shall(
-  //connect first two params from signal1 of wrapper2
-  use("signal1(int, int, java.lang.String)" of "wrapper2")(
+val rivet4 = "slot2(int, int, java.lang.String, byte [], byte [], java.util.Date)" of "adapter2" shall(
+  //connect first two params from signal1 of adapter2
+  use("signal1(int, int, java.lang.String)" of "adapter2")(
     mapping(
       1 onto 1,
       2 onto 2 using converter1)),
-  use("signal2(byte[], byte[], java.lang.String)" of "wrapper3")(
+  use("signal2(byte[], byte[], java.lang.String)" of "adapter3")(
     mapping(
       3 onto 3,
       1 onto 4 using converter1,

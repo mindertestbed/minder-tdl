@@ -3,11 +3,11 @@
   [25:33]import mtdl._;
   [40:48]import minderTdl._1._;
   [70]class TestCaseSample1 extends [85][190]mtdl.MinderTdl {
-    [99]<paramaccessor> private[this] val variableWrapperMapping: [99]scala.collection.mutable.Map[String,String] = _;
-    [99]override <stable> <accessor> <paramaccessor> def variableWrapperMapping: [99]scala.collection.mutable.Map[String,String] = [99][99]TestCaseSample1.this.variableWrapperMapping;
+    [99]<paramaccessor> private[this] val variableAdapterMapping: [99]scala.collection.mutable.Map[String,String] = _;
+    [99]override <stable> <accessor> <paramaccessor> def variableAdapterMapping: [99]scala.collection.mutable.Map[String,String] = [99][99]TestCaseSample1.this.variableAdapterMapping;
     [168]<paramaccessor> private[this] val run: [168]Boolean = _;
-    [190]def <init>([99]variableWrapperMapping: [148]<type: [148][148]scala.collection.mutable.Map[[152]<type: [152][152]scala.this.Predef.String>, [159]<type: [159][159]scala.this.Predef.String>]>, [168]run: [173]<type: [173]scala.Boolean>): [85]minderTdl._1._1.TestCaseSample1 = [190]{
-      [190][190][190]TestCaseSample1.super.<init>([200]variableWrapperMapping, [224][224][224]scala.this.Predef.boolean2Boolean([224]run));
+    [190]def <init>([99]variableAdapterMapping: [148]<type: [148][148]scala.collection.mutable.Map[[152]<type: [152][152]scala.this.Predef.String>, [159]<type: [159][159]scala.this.Predef.String>]>, [168]run: [173]<type: [173]scala.Boolean>): [85]minderTdl._1._1.TestCaseSample1 = [190]{
+      [190][190][190]TestCaseSample1.super.<init>([200]variableAdapterMapping, [224][224][224]scala.this.Predef.boolean2Boolean([224]run));
       [85]()
     };
     [243][231][231]TestCaseSample1.this.ThisPackage_=([245]"minderTdl._1._1");

@@ -21,7 +21,7 @@ object TDLClassLoaderProvider {
     externalClassLoaders.add(clzL)
   }
 
-  val dir = new java.io.File("tdlcls/");
+  val dir = new java.io.File(MTDLConfig.TDL_CLASS_DIR + "/");
   dir.mkdirs()
 
   implicit def str2URL(s: String) = new URL(s)

@@ -5,7 +5,7 @@ import mtdl.ReflectionUtils._
 /**
   * Created by yerlibilgin on 05/12/14.
   */
-case class WrapperFunction(val wrapperId: String, val signature: String) {
+case class AdapterFunction(val adapterId: String, val signature: String) {
   //parse the parameters from id
 
   var params: Array[Param] = null
@@ -55,12 +55,12 @@ case class WrapperFunction(val wrapperId: String, val signature: String) {
   }
 
   override def toString(): String = {
-    wrapperId + "::" + signature;
+    adapterId + "::" + signature;
   }
 
 
   override def equals(o: Any) = {
-    if (!o.isInstanceOf[WrapperFunction]) {
+    if (!o.isInstanceOf[AdapterFunction]) {
       false
     } else if (o == null) {
       false
@@ -69,7 +69,7 @@ case class WrapperFunction(val wrapperId: String, val signature: String) {
     }
   }
 
-  override def hashCode = this.wrapperId.hashCode * 31 + this.signature.hashCode
+  override def hashCode = this.adapterId.hashCode * 31 + this.signature.hashCode
 
 
   /**
@@ -110,7 +110,7 @@ case class WrapperFunction(val wrapperId: String, val signature: String) {
       prm.outRef = Param(-1, this)
     } else {
       if (!(this hasParam prm.out)) {
-        throw new IllegalArgumentException("WrapperFunction " + wrapperId + "." + signature + " does not have a param " + prm.out)
+        throw new IllegalArgumentException("AdapterFunction " + adapterId + "." + signature + " does not have a param " + prm.out)
       }
       prm.outRef = this.params(prm.out);
     }
@@ -128,7 +128,7 @@ case class WrapperFunction(val wrapperId: String, val signature: String) {
 }
 
 
-class NullSlot() extends WrapperFunction(MinderTdl.NULL_WRAPPER_NAME, MinderTdl.NULL_SLOT_NAME) {
+class NullSlot() extends AdapterFunction(MinderTdl.NULL_ADAPTER_NAME, MinderTdl.NULL_SLOT_NAME) {
   override def hasParam(param: Int): Boolean = true;
 
   override def initialize() {

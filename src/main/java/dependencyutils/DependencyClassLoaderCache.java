@@ -1,28 +1,24 @@
 package dependencyutils;
 
-import mtdl.Param;
 import org.eclipse.aether.resolution.DependencyResolutionException;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 
 /**
- * This cache maps the dependency service instances WRT their dependency strings
- * to save memory and speed
+ * This cache maps the dependency service instances WRT their dependency strings to save memory and speed
  *
  * @author: yerlibilgin
  * @date: 06/08/15.
  */
 public class DependencyClassLoaderCache {
+
   private static HashMap<String, DependencyClassLoader> cache = new HashMap<>();
 
   public static DependencyClassLoader getDependencyClassLoader(String dependencyString) throws DependencyResolutionException {
     if (!cache.containsKey(dependencyString)) {
-      DependencyService dependencyService = new DependencyService(dependencyString);
       List<URL> dependecyBufferList = new ArrayList<>();
-      dependencyService.getClassPathString();
-      List<String> additionalJars = dependencyService.allResolvedDependencies;
+      List<String> additionalJars = RepositoryManager.getInstance().resolve(dependencyString);
       if (additionalJars != null) {
         for (String currentJar : additionalJars) {
           String fileJar = "file://" + currentJar;

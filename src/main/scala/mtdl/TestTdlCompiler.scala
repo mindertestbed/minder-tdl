@@ -12,8 +12,8 @@ import javax.xml.bind.DatatypeConverter
 object TestTdlCompiler {//extends Specification {
 
   /*
-  // query from db with wrapper and id if does not exist
-  // throw new IllegalArgumentException("No such signal or slot <" + wrapper +
+  // query from db with adapter and id if does not exist
+  // throw new IllegalArgumentException("No such signal or slot <" + adapter +
   // "." + id + ">");
 
   class Provider extends ISignalSlotInfoProvider {
@@ -22,7 +22,7 @@ object TestTdlCompiler {//extends Specification {
 
     //val slots = List("configurePMode", "submitPayload", "receiveAS4Message", "receiveAS4Receipt");
 
-    override def getSignalSlot(wrapperId: String, signature: String) = {
+    override def getSignalSlot(adapterId: String, signature: String) = {
 
       println("SIGNATURE " + signature)
 
@@ -36,14 +36,14 @@ object TestTdlCompiler {//extends Specification {
       }
 
       if (isSignal)
-        SignalImpl(wrapperId, signature)
-      else if (signature.contains("signal")) SignalImpl(wrapperId, signature)
-      else SlotImpl(wrapperId, signature)
+        SignalImpl(adapterId, signature)
+      else if (signature.contains("signal")) SignalImpl(adapterId, signature)
+      else SlotImpl(adapterId, signature)
     }
   }
 
 
-  WrapperFunctionInfoProvider.setSignalSlotInfoProvider(new Provider)
+  AdapterFunctionInfoProvider.setSignalSlotInfoProvider(new Provider)
 
   sequential
 
@@ -61,7 +61,7 @@ object TestTdlCompiler {//extends Specification {
         println(c)
       }
 
-      val minder: MinderTdl = createInstance(minderClass, true, "$wrapper0" -> "B", "$wrapper1" -> "C")
+      val minder: MinderTdl = createInstance(minderClass, true, "$adapter0" -> "B", "$adapter1" -> "C")
 
       minder.RivetDefs.foreach(
         rivet => {
@@ -108,7 +108,7 @@ object TestTdlCompiler {//extends Specification {
   /*
     "recompile a valid tdl file" in {
       val minderClass = TdlCompiler.compileTdl("myildiz83@gmail.com", new File("initialdata/SampleTestCase12.tdl"))
-      val minder = createInstance(minderClass, true, "$wrapper0" -> "B", "$wrapper1" -> "C")
+      val minder = createInstance(minderClass, true, "$adapter0" -> "B", "$adapter1" -> "C")
       minder.RivetDefs.foreach(
         rivet => {
           println(rivet.describe())
@@ -120,7 +120,7 @@ object TestTdlCompiler {//extends Specification {
     "compile a valid tdl file that references another" in {
       TdlCompiler.compileTdl("melis@gmail.com", new File("initialdata/SampleTestCase12.tdl"))
       val minderClass = TdlCompiler.compileTdl("melis@gmail.com", new File("initialdata/SampleTestCase2.tdl"))
-      val minder = createInstance(minderClass, true, "$wrapper0" -> "B", "$wrapper1" -> "C")
+      val minder = createInstance(minderClass, true, "$adapter0" -> "B", "$adapter1" -> "C")
 
       minder.RivetDefs.foreach(
         rivet => {
@@ -146,10 +146,10 @@ object TestTdlCompiler {//extends Specification {
     "A valid test case" should {
       var cls = TdlCompiler.compileTdl("radu@romanya.com", new File("initialdata/SampleTestCase12.tdl"));
 
-      val tc1: mtdl.MinderTdl = createInstance(cls, true, "$wrapper0" -> "B", "$wrapper1" -> "C")
+      val tc1: mtdl.MinderTdl = createInstance(cls, true, "$adapter0" -> "B", "$adapter1" -> "C")
 
       cls = TdlCompiler.compileTdl("radu@romanya.com", new File("initialdata/SampleTestCase2.tdl"));
-      val tc2: mtdl.MinderTdl = createInstance(cls, true, "$wrapper0" -> "B", "$wrapper1" -> "C");
+      val tc2: mtdl.MinderTdl = createInstance(cls, true, "$adapter0" -> "B", "$adapter1" -> "C");
 
       "keep the list of its rivets" in {
         tc1.RivetDefs.size must be_==(5)
@@ -216,10 +216,6 @@ object TestTdlCompiler {//extends Specification {
     cript.reset();
     cript.update(fullUrl.getBytes("utf8"));
     val hash = DatatypeConverter.printHexBinary(cript.digest())
-
-    //val pw = new PrintWriter(new FileWriter("tdlcls/" + fullName + ".hash"))
-    //pw.print(hash)
-    //pw.close()
     hash.toString
   }
   def main (args: Array[String]) {

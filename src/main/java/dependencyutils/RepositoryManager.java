@@ -1,5 +1,7 @@
 package dependencyutils;
 
+import com.yerlibilgin.commons.FileUtils;
+import mtdl.MTDLConfig;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.artifact.Artifact;
@@ -11,6 +13,7 @@ import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.resolution.ArtifactResult;
 import org.eclipse.aether.resolution.DependencyRequest;
 import org.eclipse.aether.resolution.DependencyResolutionException;
+import org.eclipse.aether.resolution.DependencyResult;
 import org.eclipse.aether.util.artifact.JavaScopes;
 import org.eclipse.aether.util.filter.DependencyFilterUtils;
 import org.eclipse.aether.util.graph.manager.DependencyManagerUtils;
@@ -21,36 +24,57 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by ozgurmelis on 25/05/15.
  */
-public class DependencyService {
+public class RepositoryManager {
+  private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryManager.class);
+  private static RepositoryManager instance = new RepositoryManager();
+
+
   private RepositorySystem repositorySystem;
-  private DefaultRepositorySystemSession session;
   private List<RemoteRepository> repositoryList;
-  public List<String> allResolvedDependencies;
+  private DefaultRepositorySystemSession session;
 
-  /**
-   * The direct dependencies that have been provided to the system and should be resolved
-   */
-  private List<String> dependencies;
-
-  public DependencyService(String dependencyString) {
-    createRepositorySystem("dependencies" + File.separator);
-    //DependencyService.getInstance().addRepository("central", "default", "http://central.maven.org/maven2/");
-    //or you may use directly DependencyService.getInstance().addMavenCentralRepository();
-    //addRepository("local", "default", "file:///Users/yerlibilgin/.m2");
-    addRepository("Eid public repository", "default", "http://193.140.74.199:8081/nexus/content/groups/public/");
-    //or you may use directly DependencyService.getInstance().addEidRepository();
-    allResolvedDependencies = new ArrayList<String>();
-    if (dependencyString != null)
-      dependencies = Arrays.asList(dependencyString.split("\\n"));
-    else
-      dependencies = new ArrayList<>();
+  private RepositoryManager() {
+    initializeRepositorySystem();
   }
 
-  public void createRepositorySystem(String localRepoDirectory) {
+  public void initializeRepositorySystem() {
+    //check if we have a local maven repository and use it as a base,
+    final File m2Dir = new File(System.getProperty("user.home") + "/.m2/repository/");
+    if (m2Dir.exists()) {
+      LOGGER.warn("Using the default " + m2Dir.getAbsolutePath() + " as local repo");
+      createRepositorySystem(m2Dir.getAbsolutePath() + File.separator);
+    } else {
+      LOGGER.warn("Using the default " + MTDLConfig.TDL_DEPENDENCY_DIR + " as local repo");
+      //we don't have an .m2 in home. So use the configured dependency dir
+      createRepositorySystem(MTDLConfig.TDL_DEPENDENCY_DIR + File.separator);
+    }
+
+    //add more repositories if they are configured in a mvn.repositories file
+    if (MTDLConfig.MVN_SETTINGS_XML != null) {
+      final File mvnSettingsXMLFile = new File(MTDLConfig.MVN_SETTINGS_XML);
+      if (mvnSettingsXMLFile.exists()) {
+        List<String[]> repositoryList = MavenSettingsReader.readSettingsFile(mvnSettingsXMLFile.getAbsolutePath());
+        for(String []repository : repositoryList){
+          addRepository(repository[0], repository[1], repository[2]);
+        }
+      } else {
+        //there is no maven settings file. Go for the default one
+        FileUtils.transferResourceToFile(this.getClass(), "/" + MTDLConfig.DEFAULT_MVN_SETTINGS_XML, MTDLConfig.DEFAULT_MVN_SETTINGS_XML);
+        List<String[]> repositoryList = MavenSettingsReader.readSettingsFile(MTDLConfig.DEFAULT_MVN_SETTINGS_XML);
+        for(String []repository : repositoryList){
+          addRepository(repository[0], repository[1], repository[2]);
+        }
+      }
+    }
+  }
+
+  private void createRepositorySystem(String localRepoDirectory) {
     /**
      * Creates a repository system that can maintain many repositories
      */
@@ -63,29 +87,12 @@ public class DependencyService {
     session.setConfigProperty(ConflictResolver.CONFIG_PROP_VERBOSE, true);
     session.setConfigProperty(DependencyManagerUtils.CONFIG_PROP_VERBOSE, true);
 
-    repositoryList = new ArrayList<RemoteRepository>();
-    allResolvedDependencies = new ArrayList<String>();
+    repositoryList = new ArrayList<>();
   }
 
-
-  public void addMavenCentralRepository() {
-    addRepository("central", "default", "http://central.maven.org/maven2/");
-  }
-
-  public void addEidRepository() {
-    addRepository("Eid public repository", "default", "http://eidrepo:8081/nexus/content/groups/public/");
-  }
 
   public void addRepository(String id, String type, String url) {
     repositoryList.add(Booter.addRepository(id, type, url));
-  }
-
-  public String getClassPathString() throws DependencyResolutionException {
-    for (String dependency : dependencies) {
-      downloadArtifactWithAllDependencies(dependency);
-    }
-
-    return generateClassPathStringForArtifact();
   }
 
   private void downloadArtifactWithAllDependencies(String artifactInfo) throws DependencyResolutionException {
@@ -105,7 +112,6 @@ public class DependencyService {
 
     List<ArtifactResult> artifactResults = repositorySystem.resolveDependencies(session, dependencyRequest).getArtifactResults();
 
-
     for (ArtifactResult artifactResult : artifactResults) {
       //System.out.println( artifactResult.getArtifact() + " resolved to " + artifactResult.getArtifact().getFile() );
       allResolvedDependencies.add(artifactResult.getArtifact().getFile() + "");
@@ -116,7 +122,6 @@ public class DependencyService {
    * Generates the classpath for updating dependencies dynamically.
    */
   private String generateClassPathStringForArtifact() {
-    //mvn exec:exec -Dexec.args="-classpath %classpath com.acme.Main" \ -Dexec.executable="java"
     String classPathString = "";
     for (Iterator<String> i = allResolvedDependencies.iterator(); i.hasNext(); ) {
       String item = i.next();
@@ -124,5 +129,13 @@ public class DependencyService {
     }
 
     return classPathString;
+  }
+
+  public static RepositoryManager getInstance() {
+    return instance;
+  }
+
+  public DependencyResult resolveDependencies(DependencyRequest dependencyRequest) {
+    session
   }
 }

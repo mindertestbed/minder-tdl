@@ -3,13 +3,13 @@ package mtdl
 import java.io._
 import java.security.MessageDigest
 import javax.xml.bind.DatatypeConverter
-import dependencyutils.{DependencyClassLoaderCache, DependencyService}
+import dependencyutils.{DependencyClassLoaderCache, RepositoryManager}
 
 import scala.io.Source
 
 /**
- * Created by yerlibilgin on 07/12/14.
- */
+  * Created by yerlibilgin on 07/12/14.
+  */
 object TdlCompiler {
   private val lock = new Object
   val MINDERTDL_PACKAGE_NAME = "minderTdl"
@@ -17,21 +17,21 @@ object TdlCompiler {
   val SCALA_COMPILER = System.getProperty("SCALA_COMPILER", "scalac")
 
   /**
-   * Compile the provided TDL source code and return a java class for it.
-   * @param assetPath
-   * The path that the corresponding MTDL script will resolve the assets from.
-   * @param packageInfo
-   * the package that the MTDL will be compiled into.
-   *
-   * @param dependencyString
-   * The list of the maven dependencies that will be included in the compilation and class resolution process
-   * @param className
-   * The name of the class (corresponds to the test case in Minder)
-   * @param source
-   * The MTDL script to be compiled.
-   * @return
-   * The Class<MinderTdl> instance.
-   */
+    * Compile the provided TDL source code and return a java class for it.
+    *
+    * @param assetPath
+    * The path that the corresponding MTDL script will resolve the assets from.
+    * @param packageInfo
+    * the package that the MTDL will be compiled into.
+    * @param dependencyString
+    * The list of the maven dependencies that will be included in the compilation and class resolution process
+    * @param className
+    * The name of the class (corresponds to the test case in Minder)
+    * @param source
+    * The MTDL script to be compiled.
+    * @return
+    * The Class<MinderTdl> instance.
+    */
   def compileTdl(assetPath: String, packageInfo: String, dependencyString: String, className: String, source: String, version: String): Class[MinderTdl] = {
     val packagePath = MINDERTDL_PACKAGE_NAME + "/" + packageInfo;
     val packageName = packagePath.replaceAll("/", ".")
@@ -52,12 +52,12 @@ object TdlCompiler {
       println("Class not changed, load directly")
       TDLClassLoaderProvider.loadClass(packageName + "." + className, dependencyClassLoader).asInstanceOf[Class[MinderTdl]]
     } else {
-      val srcDir = new File("tdlsrc");
+      val srcDir = new File(MTDLConfig.TDL_SOURCE_DIR);
       srcDir.mkdirs()
-      new File("tdlcls").mkdirs();
+      new File(MTDLConfig.TDL_CLASS_DIR).mkdirs();
 
       lock.synchronized {
-        val pw = new PrintWriter(new FileOutputStream("tdlsrc/" + className + ".scala"))
+        val pw = new PrintWriter(new FileOutputStream(MTDLConfig.TDL_SOURCE_DIR + "/" + className + ".scala"))
 
         try {
           pw.println("package " + packageName);
@@ -81,8 +81,7 @@ object TdlCompiler {
 
           pw.println(source)
           pw.println("}")
-        }
-        finally {
+        } finally {
           pw.close()
         }
 
@@ -94,14 +93,7 @@ object TdlCompiler {
             ""
           }
 
-        val executeString: String =
-          SCALA_COMPILER + " -d ../tdlcls/ -language:postfixOps -feature -classpath " + depedencyClasspath +
-            "../target/scala-2.11/classes/" +
-            File.pathSeparatorChar + "./tdlcls/" +
-            File.pathSeparatorChar + "../tdlcls/" +
-            File.pathSeparatorChar + "mtdl.jar" +
-            File.pathSeparatorChar + "../mtdl.jar " +
-            className + ".scala"
+        val executeString: String = buildScalacCommand(className + ".scala", MTDLConfig.TDL_CLASS_DIR, Array(depedencyClasspath, MTDLConfig.TDL_CLASS_DIR, MTDLConfig.MTDL_JAR_PATH));
 
         println(executeString);
         val process = Runtime.getRuntime.exec(executeString, null, srcDir)
@@ -140,13 +132,13 @@ object TdlCompiler {
     //now at this point, check the hash of the tdl and make sure that we are not recomping over and over
 
     if (!checkHash(packagePath + "/" + className, source)) {
-      val srcDir = new File("tdlsrc");
+      val srcDir = new File(MTDLConfig.TDL_SOURCE_DIR);
       srcDir.mkdirs()
-      new File("tdlcls").mkdirs();
+      new File(MTDLConfig.TDL_CLASS_DIR).mkdirs();
 
       lock.synchronized {
         val fullFileName: String = packageName + "." + className + ".scala"
-        val pw = new PrintWriter(new FileOutputStream("tdlsrc/" + fullFileName))
+        val pw = new PrintWriter(new FileOutputStream(MTDLConfig.TDL_SOURCE_DIR + "/" + fullFileName))
 
         try {
           pw.println("package " + packageName);
@@ -173,7 +165,9 @@ object TdlCompiler {
             ""
           }
 
-        val process = Runtime.getRuntime.exec(SCALA_COMPILER + " -d ../tdlcls/ -language:postfixOps -feature -classpath " + depedencyClasspath + "../target/scala-2.11/classes/" + File.pathSeparatorChar + "./tdlcls/" + File.pathSeparatorChar + "../tdlcls/" + File.pathSeparatorChar + "mtdl.jar" + File.pathSeparatorChar + "../mtdl.jar" + " " + fullFileName, null, srcDir)
+        val command= buildScalacCommand(fullFileName, MTDLConfig.TDL_CLASS_DIR, Array(depedencyClasspath, MTDLConfig.TDL_CLASS_DIR, MTDLConfig.MTDL_JAR_PATH));
+
+        val process = Runtime.getRuntime.exec(command, null, srcDir)
         process.waitFor()
 
         val out = Source.fromInputStream(process.getInputStream).mkString
@@ -200,7 +194,7 @@ object TdlCompiler {
     val hash = DatatypeConverter.printHexBinary(cript.digest())
 
     //check the hash from clases
-    val file = new File("tdlcls/" + fullName + ".hash")
+    val file = new File(MTDLConfig.TDL_CLASS_DIR + "/" + fullName + ".hash")
     if (file.exists()) {
       val origHash = Source.fromFile(file).mkString
       if (origHash.equals(hash))
@@ -218,9 +212,25 @@ object TdlCompiler {
     cript.update(tdl.getBytes("utf8"));
     val hash = DatatypeConverter.printHexBinary(cript.digest())
 
-    val pw = new PrintWriter(new FileWriter("tdlcls/" + fullName + ".hash"))
+    val pw = new PrintWriter(new FileWriter(MTDLConfig.TDL_CLASS_DIR + "/" + fullName + ".hash"))
     pw.print(hash)
     pw.close()
+  }
+
+
+  def buildScalacCommand(fullScalaFileName: String, targetDir: String, strings: Array[String]): String = {
+    var str = SCALA_COMPILER + " -d " + targetDir + " -language:postfixOps -feature -classpath ";
+
+    str += strings.foldLeft("'")((sum, current)=>{
+      if(current != null){
+        sum + current + ":"
+      } else {
+        sum
+      }
+    }) + "'"
+
+    str += " " + fullScalaFileName
+    str
   }
 }
 

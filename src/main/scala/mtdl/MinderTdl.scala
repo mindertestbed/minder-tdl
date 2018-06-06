@@ -8,9 +8,10 @@ import scala.collection.mutable.MutableList
 
 /**
   *
-  * a map that contains the parameter wrapper names and their actual mappings.
+  * a map that contains the parameter adapter names and their actual mappings.
   * The map keys are parameter names, the values are:
-  * WrapperName|Version (separated by a |)
+  * AdapterName|Version (separated by a |)
+  *
   * @param run
   */
 abstract class MinderTdl(val run: java.lang.Boolean) extends Utils {
@@ -26,9 +27,9 @@ abstract class MinderTdl(val run: java.lang.Boolean) extends Utils {
 
   var RivetDefs = new util.ArrayList[Rivet]()
 
-  var currentRivetIndex : Int = 0
+  var currentRivetIndex: Int = 0
 
-  val wrapperDefs: mutable.Set[String] = mutable.Set[String]()
+  val adapterDefs: mutable.Set[String] = mutable.Set[String]()
 
   def NULLSLOT = new NullSlot()
 
@@ -65,9 +66,19 @@ abstract class MinderTdl(val run: java.lang.Boolean) extends Utils {
     throwable.printStackTrace()
   }
   var error: Any => Unit = (any: Any) => println(any)
+
   var errorThrowable: (Any, Throwable) => Unit = (any: Any, throwable: Throwable) => {
     println(any)
     throwable.printStackTrace()
+  }
+
+  /**
+    * Provides a skeleton method for the mtdl implementors to implement. The test script
+    * will be able to send key value pairs to the handlers that might use those keys-values
+    * in further processes such as reporting.
+    */
+  var addReportMetadata: (String, String) => Unit = (key: String, value: String) => {
+    //do nothing
   }
 
 
@@ -103,7 +114,11 @@ abstract class MinderTdl(val run: java.lang.Boolean) extends Utils {
     error(any, throwable)
   }
 
-  def use(signal: WrapperFunction)(list: List[ParameterPipe]) = {
+  def ADD_REPORT_METADATA(key: String, value: String): Unit = {
+    addReportMetadata(key, value);
+  }
+
+  def use(signal: AdapterFunction)(list: List[ParameterPipe]) = {
     //if (run && !(signal.isInstanceOf[SignalImpl])) {
     //  throw new IllegalArgumentException(signal.signature + " is not a signal.")
     //}
@@ -174,12 +189,13 @@ abstract class MinderTdl(val run: java.lang.Boolean) extends Utils {
     * @param f
     * @return
     */
-  def waitForSignal(signalSlot: WrapperFunction)(f: (Any) => Any): Unit = {
+  def waitForSignal(signalSlot: AdapterFunction)(f: (Any) => Any): Unit = {
     NULLSLOT shall (use(signalSlot)) (mapping(1 onto 1 using f))
   }
 
   /**
     * A simply forwarding method for increasing readability.
+    *
     * @param f
     * @return
     */
@@ -204,10 +220,10 @@ abstract class MinderTdl(val run: java.lang.Boolean) extends Utils {
 case class MinderStr(vall: String) {
   val cache = new java.util.HashMap[String, (AnyRef, java.lang.reflect.Field)]
 
-  def of(wrapperId: String)(implicit tdl: MinderTdl): WrapperFunction = {
-    tdl.wrapperDefs += wrapperId
+  def of(adapterId: String)(implicit tdl: MinderTdl): AdapterFunction = {
+    tdl.adapterDefs += adapterId
 
-    return WrapperFunction(wrapperId, vall)
+    return AdapterFunction(adapterId, vall)
   }
 
   def %(subRepo: String): String = {
@@ -268,6 +284,6 @@ case class MinderStr(vall: String) {
 }
 
 object MinderTdl {
-  val NULL_WRAPPER_NAME: String = "NULLWRAPPER"
+  val NULL_ADAPTER_NAME: String = "NULLADAPTER"
   val NULL_SLOT_NAME = "NULLSLOT"
 }
