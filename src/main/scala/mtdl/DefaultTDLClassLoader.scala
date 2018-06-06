@@ -1,9 +1,10 @@
 package mtdl
 
-import java.net.{URLClassLoader, URL}
+import java.net.{URL, URLClassLoader}
+
+import com.yerlibilgin.dependencyutils.DependencyClassLoader
 
 import scala.collection.JavaConversions._
-import dependencyutils.DependencyClassLoader
 
 /*
  * @author: yerlibilgin

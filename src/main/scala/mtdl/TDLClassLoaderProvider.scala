@@ -3,7 +3,7 @@ package mtdl
 import java.net.URL
 import java.util
 
-import dependencyutils.DependencyClassLoader
+import com.yerlibilgin.dependencyutils.DependencyClassLoader
 
 import scala.collection.mutable.ListBuffer
 

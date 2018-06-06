@@ -3,7 +3,8 @@ package mtdl
 import java.io._
 import java.security.MessageDigest
 import javax.xml.bind.DatatypeConverter
-import dependencyutils.{DependencyClassLoaderCache, RepositoryManager}
+
+import com.yerlibilgin.dependencyutils.DependencyClassLoaderCache
 
 import scala.io.Source
 
@@ -165,7 +166,7 @@ object TdlCompiler {
             ""
           }
 
-        val command= buildScalacCommand(fullFileName, MTDLConfig.TDL_CLASS_DIR, Array(depedencyClasspath, MTDLConfig.TDL_CLASS_DIR, MTDLConfig.MTDL_JAR_PATH));
+        val command = buildScalacCommand(fullFileName, MTDLConfig.TDL_CLASS_DIR, Array(depedencyClasspath, MTDLConfig.TDL_CLASS_DIR, MTDLConfig.MTDL_JAR_PATH));
 
         val process = Runtime.getRuntime.exec(command, null, srcDir)
         process.waitFor()
@@ -203,7 +204,6 @@ object TdlCompiler {
         false
     } else
       false
-
   }
 
   def updateHash(fullName: String, tdl: String) {
@@ -221,8 +221,8 @@ object TdlCompiler {
   def buildScalacCommand(fullScalaFileName: String, targetDir: String, strings: Array[String]): String = {
     var str = SCALA_COMPILER + " -d " + targetDir + " -language:postfixOps -feature -classpath ";
 
-    str += strings.foldLeft("'")((sum, current)=>{
-      if(current != null){
+    str += strings.foldLeft("'")((sum, current) => {
+      if (current != null) {
         sum + current + ":"
       } else {
         sum

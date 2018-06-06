@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+  <servers>
+    <server>
+      <id>releases</id>
+      <username>deployment</username>
+      <password>mypassword</password>
+    </server>
+    <server>
+      <id>snapshots</id>
+      <username>deployment</username>
+      <password>mypassword</password>
+    </server>
+    <server>
+      <id>others</id>
+      <username>deployment</username>
+      <password>mypassword</password>
+    </server>
+  </servers>
+
+  <mirrors>
+  </mirrors>
+
+  <offline>true</offline>
+
+  <profiles>
+    <profile>
+      <id>kys</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <repositories>
+        <repository>
+          <id>lecentralis</id>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <url>http://my-special-repo/public</url>
+        </repository>
+      </repositories>
+    </profile>
+
+    <profile>
+      <id>minder</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <repositories>
+        <repository>
+          <id>minder</id>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <url>http://mindertestbed.org:8081/nexus/content/groups/public/</url>
+        </repository>
+      </repositories>
+    </profile>
+    <profile>
+      <id>repo2</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <repositories>
+        <repository>
+          <releases>
+            <enabled>false</enabled>
+          </releases>
+          <id>repo2</id>
+          <url>http://repo2.maven.org/maven2</url>
+        </repository>
+      </repositories>
+      <pluginRepositories>
+        <pluginRepository>
+          <id>repo2plugins</id>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <url>http://repo2.maven.org/maven2</url>
+        </pluginRepository>
+      </pluginRepositories>
+    </profile>
+  </profiles>
+</settings>
