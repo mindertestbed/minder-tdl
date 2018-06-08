@@ -129,7 +129,13 @@ public class MavenSettingsReader {
           if (localRepository.exists()) {
             mavenSettingsFile.localRepository = localRepository;
           } else {
-            LOGGER.warn("Local repository " + textContent + " defined but does not exist");
+            LOGGER.warn("Local repository " + textContent + " defined but does not exist. Try to create it");
+            if(!localRepository.mkdirs()){
+              throw new IllegalStateException("Couldn't create repository for " + localRepository.getAbsolutePath());
+            }
+
+
+            mavenSettingsFile.localRepository = localRepository;
           }
         }
       }

@@ -55,12 +55,18 @@ public class MTDLConfig extends ConfigurationReader {
         MVN_SETTINGS_XML = new File("conf/maven-settings.xml").getAbsolutePath();
       }
 
+      TDL_SOURCE_DIR = removeQuotes(TDL_SOURCE_DIR);
+      TDL_CLASS_DIR = removeQuotes(TDL_CLASS_DIR);
+      TDL_DEPENDENCY_DIR = removeQuotes(TDL_DEPENDENCY_DIR);
+      MTDL_JAR_PATH = removeQuotes(MTDL_JAR_PATH);
+      MVN_SETTINGS_XML = removeQuotes(MVN_SETTINGS_XML);
+
       LOGGER.info("TDL_SOURCE_DIR: " + TDL_SOURCE_DIR);
       LOGGER.info("TDL_CLASS_DIR: " + TDL_CLASS_DIR);
       LOGGER.info("TDL_DEPENDENCY_DIR: " + TDL_DEPENDENCY_DIR);
       LOGGER.info("MTDL_JAR_PATH: " + MTDL_JAR_PATH);
       LOGGER.info("MVN_SETTINGS_XML: " + MVN_SETTINGS_XML);
-    }catch (Exception ex){
+    } catch (Exception ex) {
       LOGGER.error(ex.getMessage(), ex);
       throw new IllegalStateException(ex);
     }
