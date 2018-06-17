@@ -193,6 +193,19 @@ abstract class MinderTdl(val run: java.lang.Boolean) extends Utils {
     NULLSLOT shall (use(signalSlot)) (mapping(1 onto 1 using f))
   }
 
+
+  /**
+    * Wait for simple HTTP end point
+    *
+    * @param endPointIdentifier the identifier (parameter name) for the actual http endpoint
+    * @param method             : http get, post, delete, put
+    * @param timeout            the maximum timeout to wait for the endpoint. If 0, then the default value should be used
+    * @param targetFunc         the handler of the HTTP packet
+    */
+  def waitForEP(endPointIdentifier: String, method: String, timeout: Long, targetFunc: EPPacket => Unit): Unit = {
+    RivetDefs.add(new EndpointRivet(endPointIdentifier, targetFunc, method, timeout))
+  }
+
   /**
     * A simply forwarding method for increasing readability.
     *
@@ -200,7 +213,6 @@ abstract class MinderTdl(val run: java.lang.Boolean) extends Utils {
     * @return
     */
   def using(f: (Any) => Any): (Any => Any) = f
-
 
   /**
     * Section added for initializing and auto incrementing the test case IDS.
@@ -281,6 +293,8 @@ case class MinderStr(vall: String) {
       tdl.download(repo + "/" + vall)
     }
   }
+
+
 }
 
 object MinderTdl {

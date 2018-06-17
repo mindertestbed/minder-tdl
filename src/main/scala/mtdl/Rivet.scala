@@ -1,45 +1,48 @@
 package mtdl
 
-import java.util.concurrent.atomic.AtomicInteger
+import com.yerlibilgin.ValueChecker
 
 import scala.collection.mutable
 
 /**
- * Created by yerlibilgin on 05/12/14.
- */
+  * Created by yerlibilgin on 05/12/14.
+  */
 class Rivet(val adapterFunction: AdapterFunction, pipeListList: List[List[ParameterPipe]])(implicit tdl: MinderTdl) {
   /**
     * Fields added for GITB compliance
     * tplStepType
     */
 
-  var tplStepType:TPLStepType  = TPLStepType.TEST_STEP;
-  var tplStepDescription:String = "";
+  var tplStepType: TPLStepType = TPLStepType.TEST_STEP;
+  var tplStepDescription: String = "";
 
   //TODO: How to reset?
   var tplStepId: Long = tdl.getNextRivetId()
 
   /**
-   * Hold a flat list of all parameter pipes.
-   */
-  val pipes = if(pipeListList != null && !pipeListList.isEmpty) pipeListList.flatten else List()
+    * Hold a flat list of all parameter pipes.
+    */
+  val pipes = if (pipeListList != null && !pipeListList.isEmpty) pipeListList.flatten else List()
 
-  private var _result:Object = null
+  private var _result: Object = null
+
   def result = _result
 
   def result_=(result: Object) {
     _result = result
   }
+
   /**
-   * This hashmap contains signal names as strings and parameter pipe lists as values.
-   *
-   * We have to keep this data structure in order to consume the signal queue values once.
-   */
-  val signalPipeMap = new mutable.LinkedHashMap[(String,String), List[ParameterPipe]]()
+    * This hashmap contains signal names as strings and parameter pipe lists as values.
+    *
+    * We have to keep this data structure in order to consume the signal queue values once.
+    */
+  val signalPipeMap = new mutable.LinkedHashMap[(String, String), List[ParameterPipe]]()
   val freeVariablePipes = new mutable.MutableList[ParameterPipe]
 
 
   println("Pipes size " + pipes.size);
+  ValueChecker.notNull(adapterFunction, "adapterFunction")
   println("Slot name " + adapterFunction.adapterId + "." + adapterFunction.signature)
   println("Slot params size " + (adapterFunction.params == null));
 
@@ -52,23 +55,25 @@ class Rivet(val adapterFunction: AdapterFunction, pipeListList: List[List[Parame
   if (adapterFunction.params.size != 1000 && pipes.size != adapterFunction.params.size && pipes.size != 1 && (pipes(0).in != -1 || pipes(0).out != -1))
     throw new IllegalArgumentException("The number of adapterFunction arguments has to match the number of parameter pipes")
 
-  pipeListList.foreach(f = pipeList => {
-    //ensure the list is not empty and take the first key
-    if (!(pipeList isEmpty)) {
-      val firstPipe = pipeList(0)
+  if(pipeListList != null) {
+    pipeListList.foreach(f = pipeList => {
+      //ensure the list is not empty and take the first key
+      if (!(pipeList isEmpty)) {
+        val firstPipe = pipeList(0)
 
-      //grab the key to this list
+        //grab the key to this list
 
         if (firstPipe.inRef != null) {
           if (firstPipe.inRef.source == null) throw new IllegalArgumentException("A pipe having a param ref without a signal")
-          val key =(firstPipe.inRef.source.adapterId,firstPipe.inRef.source.signature)
+          val key = (firstPipe.inRef.source.adapterId, firstPipe.inRef.source.signature)
           signalPipeMap += (key -> pipeList)
-        }else{
+        } else {
           freeVariablePipes ++= pipeList
         }
 
-    }
-  })
+      }
+    })
+  }
 
   override def toString() = {
     "Rivet for " + adapterFunction.adapterId + "." + adapterFunction.signature
@@ -88,8 +93,8 @@ class Rivet(val adapterFunction: AdapterFunction, pipeListList: List[List[Parame
         })
       })
 
-      desc.deleteCharAt(desc.size-1)
-      desc.deleteCharAt(desc.size-1)
+      desc.deleteCharAt(desc.size - 1)
+      desc.deleteCharAt(desc.size - 1)
       desc += '\n'
     })
     desc.toString()
@@ -114,12 +119,12 @@ class Rivet(val adapterFunction: AdapterFunction, pipeListList: List[List[Parame
 
   override def hashCode(): Int = adapterFunction.signature.hashCode
 
-  def setGITBMetadata(tplStepType: TPLStepType, tplStepDescription: String): Unit ={
+  def setGITBMetadata(tplStepType: TPLStepType, tplStepDescription: String): Unit = {
     this.tplStepType = tplStepType;
     this.tplStepDescription = tplStepDescription;
   }
 
 }
 
-class Suspend(implicit tdl: MinderTdl)  extends Rivet(new NullSlot,List()){
+class Suspend(implicit tdl: MinderTdl) extends Rivet(new NullSlot, List()) {
 }

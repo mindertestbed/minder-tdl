@@ -7,6 +7,7 @@ import javax.xml.bind.DatatypeConverter
 import com.yerlibilgin.dependencyutils.DependencyClassLoaderCache
 
 import scala.io.Source
+import scala.collection.JavaConversions._
 
 /**
   * Created by yerlibilgin on 07/12/14.
@@ -79,8 +80,28 @@ object TdlCompiler {
           pw.println("ThisPackage = \"" + packageName + "\"")
           pw.println("AssetPath = \"" + assetPath + "\"")
           pw.println("Version = \"" + version + "\"")
+          pw.println("")
+          pw.println("/* BEGIN TDL DEFINITION */")
+          pw.println("")
+          pw.println("")
 
-          pw.println(source)
+
+          val (epIdentifiers, newSource) = EndpointParser.detectEndPointIdentifiers(source);
+
+          if(epIdentifiers.size() > 0) {
+
+            epIdentifiers.foreach(epIdentifier => {
+              pw.println(s"""val ${epIdentifier.split(":")(1)} : String = "$epIdentifier" """)
+            })
+
+            pw.println()
+            pw.println()
+          }
+
+          pw.println(newSource)
+          pw.println("")
+          pw.println("/* END TDL DEFINITION */")
+          pw.println("")
           pw.println("}")
         } finally {
           pw.close()
