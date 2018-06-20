@@ -30,6 +30,7 @@ libraryDependencies ++= Seq(
   "org.eclipse.aether" % "aether-transport-wagon" % "1.1.0",
   "org.apache.maven" % "maven-aether-provider" % "3.3.9",
   "net.sf.saxon" % "Saxon-HE" % "9.6.0-3",
+  "org.slf4j" % "slf4j-api" % "1.7.25",
   "org.slf4j" % "slf4j-simple" % "1.7.25" % Test,
   "junit" % "junit" % "4.12" % Test,
   "org.specs2" % "specs2_2.11" % "2.3.12" % Test

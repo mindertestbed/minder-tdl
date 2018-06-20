@@ -14,29 +14,38 @@ import javax.xml.transform.stream.StreamResult
 import javax.xml.transform.{OutputKeys, Transformer, TransformerFactory}
 import javax.xml.xpath.{XPath, XPathConstants, XPathExpressionException, XPathFactory}
 
+import org.slf4j.LoggerFactory
 import org.w3c.dom._
 
+
+object Utils{
+  val MINDER_REPORT_LOGGER_NAME = "mtdl.report.logger"
+}
+
 /**
- * Created by yerlibilgin on 18/05/15.
- */
+  * Created by yerlibilgin on 18/05/15.
+  */
 class Utils {
+
+  val REPORT_LOGGER = LoggerFactory.getLogger(Utils.MINDER_REPORT_LOGGER_NAME)
+
   /**
-   * Added after the task: 187 : Migrate the ASSETS from the user to the groups
-   */
+    * Added after the task: 187 : Migrate the ASSETS from the user to the groups
+    */
   var AssetPath: String = ""
   var ThisPackage: String = ""
   var Version: String = ""
 
   /**
-   *
-   * SINCE TASK:  #189 Add Argument (parameter) support to Scripts
-   *
-   * This collection holds parameters for the script when
-   * the script is going to run.
-   */
+    *
+    * SINCE TASK:  #189 Add Argument (parameter) support to Scripts
+    *
+    * This collection holds parameters for the script when
+    * the script is going to run.
+    */
   val parameters = new Properties
 
-  def getParameter(key: String, default: String = ""): String = parameters.getProperty(key, default)
+  def getParameter(key: String): String = parameters.getProperty(key)
 
   def addParameter(key: String, value: String) = parameters.put(key, value)
 
@@ -44,6 +53,40 @@ class Utils {
     parameters.clear()
     parameters.load(new ByteArrayInputStream(parms.getBytes()))
   }
+
+
+  def DEBUG(any: Any): Unit = {
+    REPORT_LOGGER.debug("{}", any)
+  }
+
+  def DEBUG(any: Any, throwable: Throwable): Unit = {
+    REPORT_LOGGER.debug("{} {}", any, throwable)
+  }
+
+  def WARN(any: Any): Unit = {
+    REPORT_LOGGER.warn("{}", any)
+  }
+
+  def WARN(any: Any, throwable: Throwable): Unit = {
+    REPORT_LOGGER.warn("{} {}", any, throwable)
+  }
+
+  def INFO(any: Any): Unit = {
+    REPORT_LOGGER.info("{}", any)
+  }
+
+  def INFO(any: Any, throwable: Throwable): Unit = {
+    REPORT_LOGGER.info("{} {}", any, throwable)
+  }
+
+  def ERROR(any: Any): Unit = {
+    REPORT_LOGGER.error("{}", any)
+  }
+
+  def ERROR(any: Any, throwable: Throwable): Unit = {
+    REPORT_LOGGER.error("{} {}", any, throwable)
+  }
+
 
   var dlCache = new File("dlcache")
   dlCache.mkdirs()
@@ -135,10 +178,11 @@ class Utils {
   }
 
   /**
-   * Download a file from an HTTPS server
-   * @param httpsURL
-   * @param stream
-   */
+    * Download a file from an HTTPS server
+    *
+    * @param httpsURL
+    * @param stream
+    */
   def downloadHttps(httpsURL: String, stream: OutputStream) = {
     val myurl = new URL(httpsURL)
     val con = myurl.openConnection().asInstanceOf[HttpsURLConnection]
@@ -154,11 +198,12 @@ class Utils {
   }
 
   /**
-   * Download from a regular server
-   * @param url
-   * @param stream
-   * @return
-   */
+    * Download from a regular server
+    *
+    * @param url
+    * @param stream
+    * @return
+    */
   def downloadHttp(url: String, stream: OutputStream) = {
     import scala.io.Source
     val html = Source.fromURL(url)
@@ -172,13 +217,14 @@ class Utils {
   val buffer: Array[Byte] = Array.ofDim(2048)
 
   /**
-   * Searches and extracts the entry with the given name from the acrhive given in zip.
-   * @param repo the remote repo that the zip will be downloaded from
-   * @param entry the entry name that will be searched in the zip
-   * @return
-   * the byte array that conatins the zip entry if found
-   * @throws IllegalArgumentException if the zip does not contain the given entry
-   */
+    * Searches and extracts the entry with the given name from the acrhive given in zip.
+    *
+    * @param repo  the remote repo that the zip will be downloaded from
+    * @param entry the entry name that will be searched in the zip
+    * @return
+    * the byte array that conatins the zip entry if found
+    * @throws IllegalArgumentException if the zip does not contain the given entry
+    */
   def extractFromZip(repo: String, entry: String): Array[Byte] = {
 
     val zip = download(repo)
@@ -265,11 +311,11 @@ class Utils {
   }
 
   /**
-   * compress the given byte array
-   *
-   * @param plain
-   * @return
-   */
+    * compress the given byte array
+    *
+    * @param plain
+    * @return
+    */
   def gzip(plain: Array[Byte]): Array[Byte] = {
     val bais: ByteArrayInputStream = new ByteArrayInputStream(plain)
     val baos: ByteArrayOutputStream = new ByteArrayOutputStream
@@ -285,11 +331,11 @@ class Utils {
   }
 
   /**
-   * Compress the given stream as GZIP
-   *
-   * @param inputStream
-   * @param outputStream
-   */
+    * Compress the given stream as GZIP
+    *
+    * @param inputStream
+    * @param outputStream
+    */
   def gzip(inputStream: InputStream, outputStream: OutputStream) {
     try {
       val gzipOutputStream: GZIPOutputStream = new GZIPOutputStream(outputStream, true)
@@ -304,11 +350,11 @@ class Utils {
   }
 
   /**
-   * Decompress the given stream that contains gzip data
-   *
-   * @param inputStream
-   * @param outputStream
-   */
+    * Decompress the given stream that contains gzip data
+    *
+    * @param inputStream
+    * @param outputStream
+    */
   def gunzip(inputStream: InputStream, outputStream: OutputStream) {
     try {
       val gzipInputStream: GZIPInputStream = new GZIPInputStream(inputStream)
@@ -425,19 +471,19 @@ class Utils {
 }
 
 /**
- * Used to provide additional methods to Int.
- *
- * @param in
- */
+  * Used to provide additional methods to Int.
+  *
+  * @param in
+  */
 case class MinderInt(in: Int) {
 
   /**
-   * creates a pipe that has in as input, out as target.
-   * If no input signal is specified, then in will be returned
-   * as the default output if this pipe.
-   *
-   * This default behaviour fixes the int input ambiguity bug.
-   */
+    * creates a pipe that has in as input, out as target.
+    * If no input signal is specified, then in will be returned
+    * as the default output if this pipe.
+    *
+    * This default behaviour fixes the int input ambiguity bug.
+    */
   def onto(out: Int) = {
     val p = ParameterPipe((in - 1), (out - 1))
     //the default selection for a parameter pipe is to return the in value.
@@ -452,6 +498,7 @@ case class MinderInt(in: Int) {
 /**
   * Used in cases where a parameter value will be ready only
   * during the execution of the test
+  *
   * @param vall
   */
 case class invokeLater(vall: () => Any) {
@@ -468,16 +515,18 @@ case class invokeLater(vall: () => Any) {
 }
 
 /**
- * Used to provide additional methods to Any.
- * @param src
- */
+  * Used to provide additional methods to Any.
+  *
+  * @param src
+  */
 case class MinderAny(src: Any) {
   /**
-   * When a value is mapped onto <code>out</code>, then
-   * it is returned in the default converter function.
-   * @param out
-   * @return
-   */
+    * When a value is mapped onto <code>out</code>, then
+    * it is returned in the default converter function.
+    *
+    * @param out
+    * @return
+    */
   def onto(out: Int) = {
     val p = ParameterPipe(-1, out - 1);
     //whatever happens, return the value.
@@ -491,11 +540,12 @@ case class MinderAny(src: Any) {
 
 class MinderNull {
   /**
-   * When a value is mapped onto <code>out</code>, then
-   * it is returned in the default converter function.
-   * @param out
-   * @return
-   */
+    * When a value is mapped onto <code>out</code>, then
+    * it is returned in the default converter function.
+    *
+    * @param out
+    * @return
+    */
   def onto(out: Int) = {
     val p = ParameterPipe(-1, out - 1)
     //whatever happens, return null.

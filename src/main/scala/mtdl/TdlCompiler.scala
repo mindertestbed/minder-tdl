@@ -5,6 +5,7 @@ import java.security.MessageDigest
 import javax.xml.bind.DatatypeConverter
 
 import com.yerlibilgin.dependencyutils.DependencyClassLoaderCache
+import org.slf4j.LoggerFactory
 
 import scala.io.Source
 import scala.collection.JavaConversions._
@@ -13,6 +14,8 @@ import scala.collection.JavaConversions._
   * Created by yerlibilgin on 07/12/14.
   */
 object TdlCompiler {
+  val LOGGER = LoggerFactory.getLogger(getClass)
+
   private val lock = new Object
   val MINDERTDL_PACKAGE_NAME = "minderTdl"
 
@@ -40,10 +43,10 @@ object TdlCompiler {
 
     val packageNameSplit = packageName.split("\\.");
     val groupId = packageNameSplit(1);
-    println("CompileTdl.groupId", groupId)
+    LOGGER.debug("CompileTdl.groupId", groupId)
     //resolution is here
 
-    println("Dependency String: [" + dependencyString + "]")
+    LOGGER.debug("Dependency String: [" + dependencyString + "]")
     val dependencyClassLoader = if (dependencyString != null && dependencyString.length != 0) DependencyClassLoaderCache.getDependencyClassLoader(dependencyString)
     else null
 
@@ -51,7 +54,7 @@ object TdlCompiler {
 
     //check the hash to prevent unnecessary recompilation
     if (checkHash(packagePath + "/" + className, source)) {
-      println("Class not changed, load directly")
+      LOGGER.debug("Class not changed, load directly")
       TDLClassLoaderProvider.loadClass(packageName + "." + className, dependencyClassLoader).asInstanceOf[Class[MinderTdl]]
     } else {
       val srcDir = new File(MTDLConfig.TDL_SOURCE_DIR);
@@ -115,9 +118,12 @@ object TdlCompiler {
             ""
           }
 
+        LOGGER.trace("dependency classpath " + depedencyClasspath)
+
         val executeString: String = buildScalacCommand(className + ".scala", MTDLConfig.TDL_CLASS_DIR, Array(depedencyClasspath, MTDLConfig.TDL_CLASS_DIR, MTDLConfig.MTDL_JAR_PATH));
 
-        println(executeString);
+        LOGGER.trace(executeString);
+        LOGGER.debug("Compile MTDL...")
         val process = Runtime.getRuntime.exec(executeString, null, srcDir)
         process.waitFor()
 
@@ -125,9 +131,9 @@ object TdlCompiler {
         val err = Source.fromInputStream(process.getErrorStream).mkString
 
         if (out != null && out.trim.length != 0)
-          println(out)
+          LOGGER.debug(out)
         if (err != null && err.trim.length != 0)
-          System.err.println(err)
+          LOGGER.error(err)
 
         if (err != null && err.length > 0) {
           throw new IllegalArgumentException(err);
@@ -144,10 +150,10 @@ object TdlCompiler {
     val packagePath = MINDERTDL_PACKAGE_NAME + "/" + packageInfo;
     val packageName = packagePath.replaceAll("/", ".")
 
-    println("PackagePath " + packagePath);
-    println("Package Name " + packageName)
+    LOGGER.debug("PackagePath " + packagePath);
+    LOGGER.debug("Package Name " + packageName)
 
-    println("Dependency String: [" + dependencyString + "]")
+    LOGGER.debug("Dependency String: [" + dependencyString + "]")
     val dependencyClassLoader = if (dependencyString != null && dependencyString.length != 0) DependencyClassLoaderCache.getDependencyClassLoader(dependencyString)
     else null
 
@@ -187,18 +193,20 @@ object TdlCompiler {
             ""
           }
 
-        val command = buildScalacCommand(fullFileName, MTDLConfig.TDL_CLASS_DIR, Array(depedencyClasspath, MTDLConfig.TDL_CLASS_DIR, MTDLConfig.MTDL_JAR_PATH));
+        val executeString = buildScalacCommand(fullFileName, MTDLConfig.TDL_CLASS_DIR, Array(depedencyClasspath, MTDLConfig.TDL_CLASS_DIR, MTDLConfig.MTDL_JAR_PATH));
 
-        val process = Runtime.getRuntime.exec(command, null, srcDir)
+        LOGGER.trace(executeString);
+        LOGGER.debug("Compile UTIL Class...")
+        val process = Runtime.getRuntime.exec(executeString, null, srcDir)
         process.waitFor()
 
         val out = Source.fromInputStream(process.getInputStream).mkString
         val err = Source.fromInputStream(process.getErrorStream).mkString
 
         if (out != null && out.trim.length != 0)
-          println(out)
+          LOGGER.debug(out)
         if (err != null && err.trim.length != 0)
-          System.err.println(err)
+          LOGGER.error(err)
 
         if (err != null && err.length > 0) {
           throw new IllegalArgumentException(err);

@@ -35,7 +35,6 @@ abstract class MinderTdl(val run: java.lang.Boolean) extends Utils {
 
   val NULL = new MinderNull()
 
-
   var exception: Throwable = null
 
   def THROWLATER(exception: Throwable): Unit = {
@@ -50,28 +49,6 @@ abstract class MinderTdl(val run: java.lang.Boolean) extends Utils {
     this.exception = new RuntimeException(message)
   }
 
-  var debug: Any => Unit = (any: Any) => println(any)
-  var debugThrowable: (Any, Throwable) => Unit = (any: Any, throwable: Throwable) => {
-    println(any)
-    throwable.printStackTrace()
-  }
-  var warn: Any => Unit = (any: Any) => println(any)
-  var warnThrowable: (Any, Throwable) => Unit = (any: Any, throwable: Throwable) => {
-    println(any)
-    throwable.printStackTrace()
-  }
-  var info: Any => Unit = (any: Any) => println(any)
-  var infoThrowable: (Any, Throwable) => Unit = (any: Any, throwable: Throwable) => {
-    println(any)
-    throwable.printStackTrace()
-  }
-  var error: Any => Unit = (any: Any) => println(any)
-
-  var errorThrowable: (Any, Throwable) => Unit = (any: Any, throwable: Throwable) => {
-    println(any)
-    throwable.printStackTrace()
-  }
-
   /**
     * Provides a skeleton method for the mtdl implementors to implement. The test script
     * will be able to send key value pairs to the handlers that might use those keys-values
@@ -79,39 +56,6 @@ abstract class MinderTdl(val run: java.lang.Boolean) extends Utils {
     */
   var addReportMetadata: (String, String) => Unit = (key: String, value: String) => {
     //do nothing
-  }
-
-
-  def DEBUG(any: Any): Unit = {
-    debug(any)
-  }
-
-  def DEBUG(any: Any, throwable: Throwable): Unit = {
-    debug(any, throwable)
-  }
-
-  def WARN(any: Any): Unit = {
-    warn(any)
-  }
-
-  def WARN(any: Any, throwable: Throwable): Unit = {
-    warn(any, throwable)
-  }
-
-  def INFO(any: Any): Unit = {
-    info(any)
-  }
-
-  def INFO(any: Any, throwable: Throwable): Unit = {
-    info(any, throwable)
-  }
-
-  def ERROR(any: Any): Unit = {
-    error(any)
-  }
-
-  def ERROR(any: Any, throwable: Throwable): Unit = {
-    error(any, throwable)
   }
 
   def ADD_REPORT_METADATA(key: String, value: String): Unit = {
@@ -293,8 +237,6 @@ case class MinderStr(vall: String) {
       tdl.download(repo + "/" + vall)
     }
   }
-
-
 }
 
 object MinderTdl {

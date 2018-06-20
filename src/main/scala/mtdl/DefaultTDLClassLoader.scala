@@ -3,6 +3,7 @@ package mtdl
 import java.net.{URL, URLClassLoader}
 
 import com.yerlibilgin.dependencyutils.DependencyClassLoader
+import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConversions._
 
@@ -11,12 +12,15 @@ import scala.collection.JavaConversions._
  * @date:   06/08/15.
  */
 class DefaultTDLClassLoader(urls: Array[URL], dependencyClassLoader: DependencyClassLoader) extends URLClassLoader(urls) {
+
+  val LOGGER = LoggerFactory.getLogger(getClass)
+
   override def loadClass(name: String, resolve: Boolean): Class[_] = {
     if (name.startsWith(TdlCompiler.MINDERTDL_PACKAGE_NAME)) {
-      println(name + " superload")
+      LOGGER.trace(name + " superload")
       super.loadClass(name, resolve)
     } else {
-      println(name + " defaultload")
+      LOGGER.trace(name + " defaultload")
 
       import scala.util.control.Breaks._
 
@@ -24,16 +28,16 @@ class DefaultTDLClassLoader(urls: Array[URL], dependencyClassLoader: DependencyC
 
       if (clz == null) {
         breakable {
-          println("Try external class loaders: " + TDLClassLoaderProvider.externalClassLoaders.size())
+          LOGGER.trace("Try external class loaders: " + TDLClassLoaderProvider.externalClassLoaders.size())
           for (cl: ClassLoader <- TDLClassLoaderProvider.externalClassLoaders) {
-            println("Try " + cl.getClass().getName() + " for " + name)
+            LOGGER.trace("Try " + cl.getClass().getName() + " for " + name)
             try {
               clz = Class.forName(name, true, cl);
             } catch {
               case th: Throwable => {}
             }
             if (clz != null) {
-              println(name + " hit " + cl)
+              LOGGER.trace(name + " hit " + cl)
               break;
             }
           }
@@ -42,7 +46,7 @@ class DefaultTDLClassLoader(urls: Array[URL], dependencyClassLoader: DependencyC
 
       if (clz == null && dependencyClassLoader != null) {
         //try me one last time
-        println("Probably this is a group dependency, Try dependency loader")
+        LOGGER.trace("Probably this is a group dependency, Try dependency loader")
         try {
           clz = dependencyClassLoader.loadClass(name)
         }catch {case  _ => {}}
