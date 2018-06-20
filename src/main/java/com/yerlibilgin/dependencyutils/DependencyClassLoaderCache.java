@@ -35,7 +35,7 @@ public class DependencyClassLoaderCache {
       final DependencyClassLoader loader = new DependencyClassLoader(dependencyList);
       cache.put(dependencyString.hashCode(), loader);
     }
-    return cache.get(dependencyString);
+    return cache.get(dependencyString.hashCode());
   }
 
 
