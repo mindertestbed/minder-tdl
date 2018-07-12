@@ -18,6 +18,7 @@ libraryDependencies ++= Seq(
   "org.scala-lang" % "scala-library" % "2.11.7",
   "org.scala-lang" % "scala-reflect" % "2.11.7",
   "org.scala-lang" % "scala-compiler" % "2.11.7",
+  "com.typesafe" % "config" % "1.3.2",
   "com.yerlibilgin.minder" % "minder-common" % "1.1.0",
   "org.eclipse.aether" % "aether-api" % "1.1.0",
   "org.eclipse.aether" % "aether-spi" % "1.1.0",

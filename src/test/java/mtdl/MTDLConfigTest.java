@@ -3,12 +3,9 @@ package mtdl;
 import static mtdl.MTDLConfig.MTDL_JAR_PATH;
 import static mtdl.MTDLConfig.MVN_SETTINGS_XML;
 import static mtdl.MTDLConfig.TDL_CLASS_DIR;
-import static mtdl.MTDLConfig.TDL_DEPENDENCY_DIR;
-import static org.junit.Assert.*;
 
 import com.yerlibilgin.commons.FileUtils;
 import java.io.File;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -32,10 +29,9 @@ public class MTDLConfigTest {
     System.setProperty("mtdlConfig.properties", "sample-mtdl.conf");
     LOGGER.info("TDL_SOURCE_DIR: " + MTDLConfig.TDL_SOURCE_DIR);
     LOGGER.info("TDL_CLASS_DIR: " + TDL_CLASS_DIR);
-    LOGGER.info("TDL_DEPENDENCY_DIR: " + TDL_DEPENDENCY_DIR);
     LOGGER.info("MTDL_JAR_PATH: " + MTDL_JAR_PATH);
     LOGGER.info("MVN_SETTINGS_XML: " + MVN_SETTINGS_XML);
-    System.out.println(MTDLConfig.DEFAULT_MVN_SETTINGS_XML);
+    System.out.println(MTDLConfig.MVN_SETTINGS_XML);
 
     final File tdlsrc = new File("data/tdlsrc");
     tdlsrc.mkdirs();
@@ -47,7 +43,6 @@ public class MTDLConfigTest {
 
     Assert.assertEquals(tdlsrc.getAbsolutePath(), MTDLConfig.TDL_SOURCE_DIR);
     Assert.assertEquals(cls.getAbsolutePath(), MTDLConfig.TDL_CLASS_DIR);
-    Assert.assertEquals(dep.getAbsolutePath(), MTDLConfig.TDL_DEPENDENCY_DIR);
     Assert.assertEquals(mdtl.getAbsolutePath(), MTDLConfig.MTDL_JAR_PATH);
     Assert.assertEquals(set.getAbsolutePath(), MTDLConfig.MVN_SETTINGS_XML);
 

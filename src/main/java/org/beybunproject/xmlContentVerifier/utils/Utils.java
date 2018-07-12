@@ -15,7 +15,7 @@ import java.nio.file.FileSystems;
  */
 public class Utils {
 
-  public static final String ARCH_URI = System.getProperty("ARCH_URI", "minbase://");
+  public static final String ARCH_URI = System.getProperty("ARCH_URI", "minbase://schemaarchive/");
   public static final char SYSTEM_SEPARATOR = '/';
 
   public static byte[] readStream(InputStream inputStream) {

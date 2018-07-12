@@ -7,7 +7,7 @@ import java.io.{FileInputStream, BufferedInputStream}
  */
 class AssetProvider(val source: String) {
   def getValue(): Array[Byte] = {
-    val bis = new BufferedInputStream(new FileInputStream("assets/" + source))
+    val bis = new BufferedInputStream(new FileInputStream(MTDLConfig.ASSET_DIR + "/" + source))
     val bArray = Stream.continually(bis.read).takeWhile(-1 !=).map(_.toByte).toArray
     bArray
   }

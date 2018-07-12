@@ -3,3 +3,5 @@ resolvers ++= Seq(
   "Typesafe Releases" at "http://repo.typesafe.com/typesafe/maven-releases/",
   "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
 )
+
+

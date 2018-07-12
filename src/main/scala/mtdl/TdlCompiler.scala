@@ -28,7 +28,7 @@ object TdlCompiler {
     * The path that the corresponding MTDL script will resolve the assets from.
     * @param packageInfo
     * the package that the MTDL will be compiled into.
-    * @param dependencyString
+    * @param depStr
     * The list of the maven dependencies that will be included in the compilation and class resolution process
     * @param className
     * The name of the class (corresponds to the test case in Minder)
@@ -37,7 +37,7 @@ object TdlCompiler {
     * @return
     * The Class<MinderTdl> instance.
     */
-  def compileTdl(assetPath: String, packageInfo: String, dependencyString: String, className: String, source: String, version: String): Class[MinderTdl] = {
+  def compileTdl(assetPath: String, packageInfo: String, depStr: String, className: String, source: String, version: String): Class[MinderTdl] = {
     val packagePath = MINDERTDL_PACKAGE_NAME + "/" + packageInfo;
     val packageName = packagePath.replaceAll("/", ".")
 
@@ -46,9 +46,10 @@ object TdlCompiler {
     LOGGER.debug("CompileTdl.groupId", groupId)
     //resolution is here
 
-    LOGGER.debug("Dependency String: [" + dependencyString + "]")
-    val dependencyClassLoader = if (dependencyString != null && dependencyString.length != 0) DependencyClassLoaderCache.getDependencyClassLoader(dependencyString)
-    else null
+
+    val newDepStr = """org.slf4j:slf4j-api:1.7.25""" + "\n" + depStr;
+    LOGGER.debug("Dependency String: [" + newDepStr + "]")
+    val dependencyClassLoader = DependencyClassLoaderCache.getDependencyClassLoader(newDepStr)
 
     //now at this point, check the hash of the tdl and make sure that we are not recomping over and over
 
@@ -146,16 +147,17 @@ object TdlCompiler {
     }
   }
 
-  def compileUtil(assetPath: String, packageInfo: String, dependencyString: String, className: String, source: String): Unit = {
+  def compileUtil(assetPath: String, packageInfo: String, depStr: String, className: String, source: String): Unit = {
     val packagePath = MINDERTDL_PACKAGE_NAME + "/" + packageInfo;
     val packageName = packagePath.replaceAll("/", ".")
 
     LOGGER.debug("PackagePath " + packagePath);
     LOGGER.debug("Package Name " + packageName)
 
+
+    val dependencyString = """org.slf4j:slf4j-api:1.7.25""" + "\n" + depStr;
     LOGGER.debug("Dependency String: [" + dependencyString + "]")
-    val dependencyClassLoader = if (dependencyString != null && dependencyString.length != 0) DependencyClassLoaderCache.getDependencyClassLoader(dependencyString)
-    else null
+    val dependencyClassLoader = DependencyClassLoaderCache.getDependencyClassLoader(dependencyString)
 
     //now at this point, check the hash of the tdl and make sure that we are not recomping over and over
 

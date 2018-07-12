@@ -92,7 +92,7 @@ public class RepositoryManager {
     createRepositorySystemOnLocalM2();
 
     //Read the deafult settings resource
-    final InputStream stream = this.getClass().getResourceAsStream("/" + MTDLConfig.DEFAULT_MVN_SETTINGS_XML);
+    final InputStream stream = this.getClass().getResourceAsStream("/" + MTDLConfig.MVN_SETTINGS_XML);
     if (stream != null) {
       MavenSettingsFile mavenSettingsFile = MavenSettingsReader.readSettings(stream);
       for (String[] repository : mavenSettingsFile.repositoryList) {
